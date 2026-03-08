@@ -66,10 +66,10 @@ export function GameCard({ game, onLaunch }: GameCardProps) {
 
   return (
     <div 
-      className="group flex flex-col bg-card/5 hover:bg-card/10 border border-border/30 rounded-[2rem] transition-all duration-300 p-5 gap-5 shadow-sm hover:shadow-2xl hover:shadow-primary/5 hover:border-primary/20"
+      className="group flex flex-col bg-secondary/10 hover:bg-secondary/20 border border-border/50 rounded-[2rem] transition-all duration-300 p-5 gap-5 shadow-sm hover:shadow-2xl hover:shadow-primary/5 hover:border-primary/30"
     >
       <div className="flex items-center gap-5">
-        <div className="relative w-28 h-20 rounded-2xl overflow-hidden shrink-0 border border-border/40 shadow-xl bg-black group-hover:border-primary/40 transition-colors">
+        <div className="relative w-28 h-20 rounded-2xl overflow-hidden shrink-0 border border-border shadow-xl bg-black group-hover:border-primary/40 transition-colors">
           <Image
             src={game.thumbnail}
             alt={game.title}
@@ -83,13 +83,13 @@ export function GameCard({ game, onLaunch }: GameCardProps) {
           <h3 className="text-xl font-black tracking-tighter uppercase italic text-foreground leading-none">
             {game.title}
           </h3>
-          <div className="flex items-center gap-4 text-muted-foreground/40">
+          <div className="flex items-center gap-4 text-muted-foreground/60">
             <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest">
-              <Eye className="w-3.5 h-3.5 text-primary/50" />
+              <Eye className="w-3.5 h-3.5 text-primary/70" />
               {game.views}
             </div>
             <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest">
-              <MousePointer2 className="w-3.5 h-3.5 text-accent/50" />
+              <MousePointer2 className="w-3.5 h-3.5 text-accent/70" />
               {game.played}
             </div>
           </div>
@@ -97,27 +97,27 @@ export function GameCard({ game, onLaunch }: GameCardProps) {
       </div>
 
       <div className="flex items-center gap-3">
-        <div className="flex bg-secondary/10 rounded-2xl p-1.5 border border-border/10 flex-1 sm:flex-none">
+        <div className="flex bg-secondary/30 rounded-2xl p-1.5 border border-border/50 flex-1 sm:flex-none">
           <button 
             onClick={handleLike}
             className={cn(
               "flex-1 sm:flex-none flex items-center justify-center gap-2.5 px-5 py-2.5 rounded-xl font-black text-[10px] uppercase transition-all active:scale-95",
               userVote === 'like' 
                 ? "bg-primary text-white shadow-lg shadow-primary/30" 
-                : "text-muted-foreground/60 hover:bg-primary/10 hover:text-primary"
+                : "text-muted-foreground/80 hover:bg-primary/10 hover:text-primary"
             )}
           >
             <ThumbsUp className={cn("w-4 h-4", userVote === 'like' && "fill-current")} />
             {likes.toLocaleString()}
           </button>
-          <div className="w-px h-5 bg-border/20 self-center mx-1.5" />
+          <div className="w-px h-5 bg-border/50 self-center mx-1.5" />
           <button 
             onClick={handleDislike}
             className={cn(
               "flex-1 sm:flex-none flex items-center justify-center gap-2.5 px-5 py-2.5 rounded-xl font-black text-[10px] uppercase transition-all active:scale-95",
               userVote === 'dislike' 
                 ? "bg-destructive text-white shadow-lg shadow-destructive/30" 
-                : "text-muted-foreground/60 hover:bg-destructive/10 hover:text-destructive"
+                : "text-muted-foreground/80 hover:bg-destructive/10 hover:text-destructive"
             )}
           >
             <ThumbsDown className={cn("w-4 h-4", userVote === 'dislike' && "fill-current")} />
@@ -128,10 +128,10 @@ export function GameCard({ game, onLaunch }: GameCardProps) {
         <button 
           onClick={handleShare}
           className={cn(
-            "flex-1 sm:flex-none flex items-center justify-center gap-2.5 px-5 py-2.5 rounded-xl font-black text-[10px] uppercase transition-all border border-border/10 bg-secondary/10 active:scale-95",
+            "flex-1 sm:flex-none flex items-center justify-center gap-2.5 px-5 py-2.5 rounded-xl font-black text-[10px] uppercase transition-all border border-border/50 bg-secondary/30 active:scale-95",
             isShared 
-              ? "text-green-500 border-green-500/30 bg-green-500/10" 
-              : "text-muted-foreground/60 hover:text-accent hover:bg-accent/10 hover:border-accent/20"
+              ? "text-green-600 border-green-600/30 bg-green-600/10" 
+              : "text-muted-foreground/80 hover:text-accent hover:bg-accent/10 hover:border-accent/20"
           )}
         >
           {isShared ? <Check className="w-4 h-4" /> : <Share2 className="w-4 h-4" />}
@@ -142,7 +142,7 @@ export function GameCard({ game, onLaunch }: GameCardProps) {
       <Button 
         disabled={isLoading}
         onClick={handlePlayClick}
-        className="w-full bg-primary hover:bg-primary/90 text-white font-black text-[11px] uppercase tracking-[0.25em] h-12 rounded-2xl shadow-xl shadow-primary/20 transition-all active:scale-[0.98] border border-white/5"
+        className="w-full bg-primary hover:bg-primary/90 text-white font-black text-[11px] uppercase tracking-[0.25em] h-12 rounded-2xl shadow-xl shadow-primary/20 transition-all active:scale-[0.98] border border-white/10"
       >
         {isLoading ? (
           <div className="flex gap-2 items-center justify-center">
