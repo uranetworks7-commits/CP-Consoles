@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
@@ -67,11 +66,26 @@ export default function Home() {
     setIsInitialized(true);
   }, []);
 
-  const toggleTheme = () => {
+  const toggleTheme = async () => {
     const newTheme = theme === 'dark' ? 'light' : 'dark';
     setTheme(newTheme);
     localStorage.setItem('console_theme', newTheme);
     document.documentElement.classList.toggle('light', newTheme === 'light');
+    
+    // Sync theme to RTDB
+    if (loggedInUser && rtdb) {
+      try {
+        const userRef = ref(rtdb, `users/${loggedInUser.username}`);
+        await update(userRef, { theme: newTheme });
+        
+        // Update local state to include theme
+        const updatedUser = { ...loggedInUser, theme: newTheme };
+        setLoggedInUser(updatedUser);
+        localStorage.setItem('pulse_session', JSON.stringify(updatedUser));
+      } catch (err) {
+        console.error("Failed to sync theme to cloud:", err);
+      }
+    }
   };
 
   const handleLogin = async () => {
@@ -108,6 +122,13 @@ export default function Home() {
         
         setLoggedInUser(userProfile);
         localStorage.setItem('pulse_session', JSON.stringify(userProfile));
+        
+        // Handle theme from RTDB if it exists
+        if (userData.theme) {
+          setTheme(userData.theme);
+          localStorage.setItem('console_theme', userData.theme);
+          document.documentElement.classList.toggle('light', userData.theme === 'light');
+        }
         
         toast({
           title: "Access Granted",
@@ -151,8 +172,7 @@ export default function Home() {
         timestamp: new Date().toISOString()
       };
       
-      // Calculate new XP (gain 50 XP per play session for demo)
-      const currentXp = parseInt((loggedInUser.xp || "12,450").toString().replace(/,/g, ''));
+      const currentXp = parseInt((loggedInUser.xp || "0").toString().replace(/,/g, ''));
       const newXp = (currentXp + 50).toLocaleString();
 
       const updates: any = {
@@ -162,7 +182,6 @@ export default function Home() {
 
       try {
         await update(userRef, updates);
-        // Sync local state
         const updatedUser = { ...loggedInUser, ...updates };
         setLoggedInUser(updatedUser);
         localStorage.setItem('pulse_session', JSON.stringify(updatedUser));
@@ -194,7 +213,7 @@ export default function Home() {
       });
 
       toast({
-        title: "Engine Published",
+        title: "App Published",
         description: "Your App under Review.",
       });
 
@@ -288,7 +307,6 @@ export default function Home() {
           <Button variant="ghost" size="sm" onClick={() => setShowNewProject(false)} className="rounded-xl gap-2 font-black uppercase tracking-widest text-[10px]">
             <ArrowLeft className="w-4 h-4" /> Back to Console
           </Button>
-          <h2 className="text-sm font-black uppercase tracking-tighter italic">Engine Architect</h2>
           <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20">
             <PlusCircle className="w-5 h-5 text-primary" />
           </div>
@@ -296,8 +314,7 @@ export default function Home() {
 
         <main className="max-w-xl mx-auto p-6 space-y-8 pb-32">
           <div className="space-y-1">
-            <h1 className="text-3xl font-black uppercase italic tracking-tighter">New Engine Configuration</h1>
-            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-[0.2em]">Deploy your vision to the Connect Plus network</p>
+            <h1 className="text-3xl font-black uppercase italic tracking-tighter">New Application</h1>
           </div>
 
           <div className="grid gap-6">
@@ -315,7 +332,7 @@ export default function Home() {
               <div className="space-y-2">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">Game Designation (Max 12)</Label>
                 <Input 
-                  placeholder="Engine Name" 
+                  placeholder="App Name" 
                   maxLength={12}
                   value={formData.gameName}
                   onChange={(e) => setFormData({...formData, gameName: e.target.value})}
@@ -323,7 +340,7 @@ export default function Home() {
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">Engine Classification</Label>
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">Application Classification</Label>
                 <Input 
                   placeholder="Action, Battle, etc." 
                   value={formData.gameType}
@@ -334,9 +351,9 @@ export default function Home() {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">Engine Core URL</Label>
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">App Core URL</Label>
               <Input 
-                placeholder="https://game-engine-source.com" 
+                placeholder="https://app-source.com" 
                 value={formData.gameUrl}
                 onChange={(e) => setFormData({...formData, gameUrl: e.target.value})}
                 className="rounded-xl bg-secondary/10 border-border focus:border-primary/50"
@@ -370,7 +387,7 @@ export default function Home() {
             disabled={isPublishing || !formData.gameName || !formData.gameUrl}
             className="w-full h-14 bg-primary hover:bg-primary/90 text-white font-black uppercase tracking-[0.3em] text-xs rounded-2xl shadow-2xl shadow-primary/20 gap-3"
           >
-            {isPublishing ? "Initiating Uplink..." : <><Rocket className="w-5 h-5" /> Publish Engine</>}
+            {isPublishing ? "Initiating Uplink..." : <><Rocket className="w-5 h-5" /> Publish App</>}
           </Button>
         </main>
       </div>
@@ -456,13 +473,12 @@ export default function Home() {
                     </div>
                   </div>
 
-                  {/* My Apps / Analytics Section */}
                   <div className="space-y-4">
                     <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">All App Analytics</p>
                     <div className="space-y-3">
                       {userSubmissions.length === 0 ? (
                         <div className="p-6 border border-dashed border-border rounded-2xl text-center">
-                          <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest italic">No Engines Deployed</p>
+                          <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest italic">No Applications Deployed</p>
                         </div>
                       ) : (
                         userSubmissions.map((sub: any) => (
