@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { GAMES_LIBRARY, Game } from '@/lib/games';
 import { GameCard } from '@/components/GameCard';
 import { GameLaunchPad } from '@/components/GameLaunchPad';
@@ -97,21 +97,21 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-[#0a0c10] text-foreground selection:bg-primary selection:text-primary-foreground">
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-0 space-y-6">
-        <header className="sticky top-0 z-30 bg-[#0a0c10]/95 backdrop-blur-md border-b border-border/30 py-6">
-          <div className="flex flex-col gap-6">
+      <main className="max-w-2xl mx-auto px-4 sm:px-6 py-0 space-y-4">
+        <header className="sticky top-0 z-30 bg-[#0a0c10]/95 backdrop-blur-md border-b border-border/30 py-3">
+          <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
-                  <MonitorPlay className="text-white w-6 h-6" />
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
+                  <MonitorPlay className="text-white w-5 h-5" />
                 </div>
                 <div>
-                  <h1 className="text-2xl sm:text-3xl font-black tracking-tighter uppercase italic text-foreground leading-none">
+                  <h1 className="text-xl sm:text-2xl font-black tracking-tighter uppercase italic text-foreground leading-none">
                     Connect Pulse Consoles
                   </h1>
                   {userData?.username && (
-                    <p className="text-[10px] font-mono text-accent uppercase tracking-[0.2em] mt-1 flex items-center gap-1.5">
-                      <Terminal className="w-3 h-3" />
+                    <p className="text-[8px] font-mono text-accent uppercase tracking-[0.2em] mt-0.5 flex items-center gap-1">
+                      <Terminal className="w-2.5 h-2.5" />
                       Active_Operator: {userData.username}
                     </p>
                   )}
@@ -120,14 +120,14 @@ export default function Home() {
 
               <div className="flex items-center gap-2">
                 {authLoading ? (
-                  <div className="w-10 h-10 rounded-full bg-muted animate-pulse" />
+                  <div className="w-8 h-8 rounded-full bg-muted animate-pulse" />
                 ) : user ? (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0">
-                        <Avatar className="h-10 w-10 border border-primary/20">
+                      <Button variant="ghost" className="relative h-8 w-8 rounded-full p-0">
+                        <Avatar className="h-8 w-8 border border-primary/20">
                           <AvatarImage src={user.photoURL || ''} alt={userData?.username || 'User'} />
-                          <AvatarFallback><User /></AvatarFallback>
+                          <AvatarFallback><User size={14}/></AvatarFallback>
                         </Avatar>
                       </Button>
                     </DropdownMenuTrigger>
@@ -150,9 +150,9 @@ export default function Home() {
                     variant="outline" 
                     size="sm" 
                     onClick={handleLogin}
-                    className="rounded-full bg-primary/10 border-primary/20 hover:bg-primary hover:text-white transition-all gap-2 h-9 px-4 font-bold uppercase text-[10px] tracking-widest"
+                    className="rounded-full bg-primary/10 border-primary/20 hover:bg-primary hover:text-white transition-all gap-2 h-8 px-3 font-bold uppercase text-[9px] tracking-widest"
                   >
-                    <LogIn className="w-3.5 h-3.5" />
+                    <LogIn className="w-3 h-3" />
                     Sign In
                   </Button>
                 )}
@@ -165,9 +165,9 @@ export default function Home() {
                   if (!user) handleLogin();
                   else toast({ title: "Access Locked", description: "Admin level required for new builds." });
                 }}
-                className="bg-accent hover:bg-accent/90 text-accent-foreground rounded-full px-6 h-10 font-black uppercase text-[10px] tracking-widest gap-2 shadow-lg shadow-accent/10"
+                className="bg-accent hover:bg-accent/90 text-accent-foreground rounded-full px-4 h-8 font-black uppercase text-[9px] tracking-widest gap-2 shadow-lg shadow-accent/10"
               >
-                <PlusCircle className="w-4 h-4" />
+                <PlusCircle className="w-3.5 h-3.5" />
                 New Project
               </Button>
               <div className="flex-1 h-px bg-border/20" />
@@ -175,8 +175,8 @@ export default function Home() {
           </div>
         </header>
 
-        <section className="pb-10 pt-4">
-          <div className="flex flex-col">
+        <section className="pb-8">
+          <div className="flex flex-col gap-4">
             {GAMES_LIBRARY.map((game) => (
               <GameCard 
                 key={game.id} 
@@ -187,9 +187,9 @@ export default function Home() {
           </div>
         </section>
 
-        <footer className="py-10 flex justify-between items-center text-muted-foreground/30 border-t border-border/10">
-          <p className="text-[10px] font-mono uppercase tracking-widest">NEXUS_OS_CORE v3.0</p>
-          <div className="flex gap-4">
+        <footer className="py-6 flex justify-between items-center text-muted-foreground/30 border-t border-border/10">
+          <p className="text-[9px] font-mono uppercase tracking-widest">NEXUS_OS_CORE v3.0</p>
+          <div className="flex gap-3">
             <div className="w-1 h-1 bg-primary rounded-full" />
             <div className="w-1 h-1 bg-primary rounded-full" />
             <div className="w-1 h-1 bg-primary rounded-full" />
