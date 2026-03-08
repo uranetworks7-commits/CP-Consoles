@@ -62,7 +62,7 @@ export default function Home() {
     setIsLoggingIn(true);
     try {
       const dbRef = ref(rtdb);
-      // Direct check from Realtime Database as per provided snippet
+      // Direct check from Realtime Database
       const snapshot = await get(child(dbRef, `users/${username}`));
       
       if (snapshot.exists()) {
@@ -130,7 +130,7 @@ export default function Home() {
               </div>
               <div className="space-y-1">
                 <h1 className="text-3xl font-black uppercase italic tracking-tighter text-foreground leading-none">
-                  Login
+                  Connect Plus Console
                 </h1>
               </div>
             </div>
@@ -138,7 +138,7 @@ export default function Home() {
             <div className="space-y-4">
               <div className="space-y-2">
                 <label className="text-[9px] font-black uppercase tracking-[0.2em] text-primary/80 ml-1">
-                  Enter Username
+                  Enter Handle
                 </label>
                 <Input
                   placeholder="Username"
@@ -157,12 +157,12 @@ export default function Home() {
                   <div className="flex gap-2">
                     <div className="w-1.5 h-1.5 bg-white rounded-full animate-bounce" />
                     <div className="w-1.5 h-1.5 bg-white rounded-full animate-bounce [animation-delay:0.2s]" />
-                    Checking...
+                    Verifying...
                   </div>
                 ) : (
                   <>
                     <LogIn className="w-4 h-4" />
-                    Check Username
+                    Initialize Login
                   </>
                 )}
               </Button>
@@ -170,7 +170,7 @@ export default function Home() {
             
             <div className="pt-4 border-t border-border/10">
               <p className="text-[7px] font-mono text-center text-muted-foreground/30 uppercase tracking-[0.2em]">
-                System_Initialization // Connection_Locked
+                Secure Operator Access
               </p>
             </div>
           </div>
