@@ -6,10 +6,9 @@ import { GameCard } from '@/components/GameCard';
 import { GameLaunchPad } from '@/components/GameLaunchPad';
 import { MonitorPlay, User, PlusCircle, LogIn, LogOut, Terminal, Cpu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useAuth, useUser, useRTDB } from '@/firebase';
-import { signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
-import { ref, set, onValue } from 'firebase/database';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useRTDB } from '@/firebase';
+import { ref, get, child } from 'firebase/database';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,110 +24,102 @@ export default function Home() {
   const [activeGame, setActiveGame] = useState<Game | null>(null);
   const [usernameInput, setUsernameInput] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const [userData, setUserData] = useState<any>(null);
-  const [dbLoading, setDbLoading] = useState(true);
+  const [loggedInUser, setLoggedInUser] = useState<any>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
   
-  const auth = useAuth();
   const rtdb = useRTDB();
-  const { user, loading: authLoading } = useUser();
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!rtdb || !user) {
-      setDbLoading(false);
-      setUserData(null);
-      return;
+    // Check for existing session in local storage
+    const savedUser = localStorage.getItem('pulse_session');
+    if (savedUser) {
+      setLoggedInUser(JSON.parse(savedUser));
     }
-
-    const userRef = ref(rtdb, `users/${user.uid}`);
-    const unsubscribe = onValue(userRef, (snapshot) => {
-      const data = snapshot.val();
-      setUserData(data);
-      setDbLoading(false);
-    }, (error) => {
-      console.error("RTDB Sync Error:", error);
-      setDbLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, [rtdb, user]);
+    setIsInitialized(true);
+  }, []);
 
   const handleLogin = async () => {
-    if (!auth || !rtdb) {
+    if (!rtdb) {
       toast({
         variant: "destructive",
-        title: "Initialization Error",
-        description: "Firebase services are still syncing. Please wait a moment.",
+        title: "System Offline",
+        description: "Database connection not established.",
       });
       return;
     }
 
-    if (!usernameInput.trim()) {
+    const input = usernameInput.trim();
+    if (!input) {
       toast({
         variant: "destructive",
         title: "Identification Required",
-        description: "Enter an Operator Handle to begin initialization.",
+        description: "Enter your Operator Handle to verify credentials.",
       });
       return;
     }
     
     setIsLoggingIn(true);
     try {
-      const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
+      const dbRef = ref(rtdb);
+      const snapshot = await get(child(dbRef, 'users'));
       
-      const userRef = ref(rtdb, `users/${result.user.uid}`);
-      await set(userRef, {
-        uid: result.user.uid,
-        username: usernameInput.trim(),
-        email: result.user.email,
-        photoURL: result.user.photoURL,
-        lastActive: new Date().toISOString(),
-      });
+      if (snapshot.exists()) {
+        const users = snapshot.val();
+        // Look for the specific username (case sensitive)
+        const userEntry = Object.values(users).find((u: any) => u.username === input);
 
-      toast({
-        title: "Pulse ID Verified",
-        description: `Welcome, Operator ${usernameInput.trim()}.`,
-      });
-    } catch (error: any) {
-      console.error("Auth Exception:", error);
-      let errorMsg = error.message;
-      if (error.code === 'auth/unauthorized-domain') {
-        errorMsg = "Domain blocked. Add this URL to Firebase Auth -> Authorized Domains.";
-      } else if (error.code === 'auth/configuration-not-found') {
-        errorMsg = "Firebase Auth not enabled. Check Google Auth provider in Firebase Console.";
+        if (userEntry) {
+          setLoggedInUser(userEntry);
+          localStorage.setItem('pulse_session', JSON.stringify(userEntry));
+          toast({
+            title: "Access Granted",
+            description: `Credentials verified. Welcome, ${input}.`,
+          });
+        } else {
+          toast({
+            variant: "destructive",
+            title: "Access Denied",
+            description: "Operator Handle not found in system records.",
+          });
+        }
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Database Error",
+          description: "No user registry found in the database.",
+        });
       }
-      
+    } catch (error: any) {
+      console.error("Login Exception:", error);
       toast({
         variant: "destructive",
         title: "System Failure",
-        description: errorMsg,
+        description: error.message || "Could not verify credentials.",
       });
     } finally {
       setIsLoggingIn(false);
     }
   };
 
-  const handleLogout = async () => {
-    if (!auth) return;
-    await signOut(auth);
-    setUserData(null);
+  const handleLogout = () => {
+    setLoggedInUser(null);
+    localStorage.removeItem('pulse_session');
+    toast({
+      title: "Session Terminated",
+      description: "Neural link disconnected.",
+    });
   };
 
-  if (authLoading || (user && dbLoading)) {
+  if (!isInitialized) {
     return (
       <div className="min-h-screen bg-[#0a0c10] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-primary animate-pulse flex items-center justify-center">
-            <Cpu className="text-white w-6 h-6 animate-spin duration-[3000ms]" />
-          </div>
-          <p className="text-[10px] font-mono text-primary uppercase tracking-[0.3em] animate-pulse">Synchronizing_Neural_Link...</p>
-        </div>
+        <Cpu className="text-primary w-8 h-8 animate-spin" />
       </div>
     );
   }
 
-  if (!user) {
+  if (!loggedInUser) {
     return (
       <div className="min-h-screen bg-[#0a0c10] flex flex-col items-center justify-center p-6">
         <div className="w-full max-w-md space-y-8 bg-card/20 p-10 rounded-[2.5rem] border border-border/30 shadow-2xl backdrop-blur-md relative overflow-hidden">
@@ -146,7 +137,7 @@ export default function Home() {
                   Pulse Console
                 </h1>
                 <p className="text-muted-foreground/60 text-[9px] font-mono uppercase tracking-[0.4em]">
-                  System_Initialization_Req
+                  Direct_Database_Check
                 </p>
               </div>
             </div>
@@ -154,10 +145,10 @@ export default function Home() {
             <div className="space-y-4">
               <div className="space-y-2">
                 <label className="text-[9px] font-black uppercase tracking-[0.2em] text-primary/80 ml-1">
-                  Operator Handle (Mixed Case Allowed)
+                  Operator Handle (Mixed Case)
                 </label>
                 <Input
-                  placeholder="Ex: Commander_X"
+                  placeholder="Enter username..."
                   value={usernameInput}
                   onChange={(e) => setUsernameInput(e.target.value)}
                   className="h-12 bg-card/10 border-border/20 focus:border-primary/50 focus:ring-primary/20 font-mono rounded-xl px-5 text-sm tracking-widest text-foreground"
@@ -173,7 +164,7 @@ export default function Home() {
                   <div className="flex gap-2">
                     <div className="w-1.5 h-1.5 bg-white rounded-full animate-bounce" />
                     <div className="w-1.5 h-1.5 bg-white rounded-full animate-bounce [animation-delay:0.2s]" />
-                    Linking...
+                    Verifying...
                   </div>
                 ) : (
                   <>
@@ -186,7 +177,7 @@ export default function Home() {
             
             <div className="pt-4 border-t border-border/10">
               <p className="text-[7px] font-mono text-center text-muted-foreground/30 uppercase tracking-[0.2em]">
-                Secure_Handshake // Realtime_DB_Ready
+                Secure_Handshake // Database_Sync_Active
               </p>
             </div>
           </div>
@@ -210,7 +201,7 @@ export default function Home() {
                     Pulse Consoles
                   </h1>
                   <p className="text-[8px] font-mono text-primary/60 tracking-[0.2em] mt-1 uppercase">
-                    Operator_{userData?.username || 'GUEST'}
+                    Operator_{loggedInUser.username}
                   </p>
                 </div>
               </div>
@@ -230,17 +221,18 @@ export default function Home() {
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="relative h-9 w-9 rounded-xl p-0 overflow-hidden border border-primary/20 hover:border-primary">
                       <Avatar className="h-full w-full rounded-none">
-                        <AvatarImage src={user.photoURL || ''} />
-                        <AvatarFallback className="bg-secondary/50 rounded-none"><User size={16} className="text-primary"/></AvatarFallback>
+                        <AvatarFallback className="bg-secondary/50 rounded-none text-primary text-[10px] font-bold">
+                          {loggedInUser.username.substring(0, 2).toUpperCase()}
+                        </AvatarFallback>
                       </Avatar>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="w-56 bg-[#0a0c10] border-border/30 rounded-xl p-1 mt-2" align="start">
                     <DropdownMenuLabel className="p-3">
                       <p className="text-[10px] font-black italic tracking-tighter text-foreground">
-                        {userData?.username || user.displayName}
+                        {loggedInUser.username}
                       </p>
-                      <p className="text-[8px] font-mono text-muted-foreground/60">{user.email}</p>
+                      <p className="text-[8px] font-mono text-muted-foreground/60">Pulse_ID: {loggedInUser.uid || 'N/A'}</p>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator className="bg-border/10" />
                     <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer font-bold uppercase text-[9px] tracking-widest p-2.5">
@@ -258,7 +250,7 @@ export default function Home() {
                     </p>
                   </div>
                   <p className="text-[9px] text-foreground font-black uppercase italic tracking-tighter">
-                    Pulse Network Console
+                    Database Verified Console
                   </p>
                 </div>
               </div>
@@ -279,7 +271,7 @@ export default function Home() {
         </section>
 
         <footer className="py-8 flex flex-col items-center gap-3 text-muted-foreground/10 border-t border-border/5">
-          <p className="text-[7px] font-mono uppercase tracking-[0.3em]">Core_v5.0.0 // RTDB_SYNC_ENABLED</p>
+          <p className="text-[7px] font-mono uppercase tracking-[0.3em]">Core_v5.0.0 // RTDB_VERIFY_ENABLED</p>
           <p className="text-[7px] font-mono uppercase tracking-widest">© Pulse_Consoles_Systems</p>
         </footer>
       </main>
