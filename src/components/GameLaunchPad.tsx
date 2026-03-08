@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { Game } from '@/lib/games';
-import { X, RotateCcw, Monitor, ExternalLink } from 'lucide-react';
+import { RotateCcw, Monitor, ExternalLink, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 
@@ -25,74 +25,90 @@ export function GameLaunchPad({ game, onClose }: GameLaunchPadProps) {
 
   return (
     <Dialog open={!!game} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-[95vw] w-full h-[90vh] p-0 overflow-hidden bg-background border-none shadow-2xl">
-        <DialogTitle className="sr-only">Playing {game.title}</DialogTitle>
+      {/* p-0 and max-w-[100vw] for true full screen experience */}
+      <DialogContent 
+        className="max-w-full w-full h-full p-0 border-none bg-black rounded-none flex flex-col gap-0 [&>button]:hidden"
+      >
+        <DialogTitle className="sr-only">System Engine: {game.title}</DialogTitle>
         
-        <div className="flex flex-col h-full">
-          <div className="flex items-center justify-between px-6 py-3 bg-card/50 border-b border-border/30">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
-                <Monitor className="text-primary w-5 h-5" />
-              </div>
-              <div>
-                <h2 className="text-lg font-bold uppercase tracking-tight italic">{game.title}</h2>
-                <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-widest">{game.category} // {game.players}</p>
-              </div>
+        {/* Unified Control Bar */}
+        <div className="flex items-center justify-between px-6 py-4 bg-[#0a0c10] border-b border-border/30 z-20">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
+              <Monitor className="text-primary w-6 h-6" />
             </div>
-            
-            <div className="flex items-center gap-2">
-              <Button 
-                variant="outline" 
-                size="icon" 
-                className="rounded-full w-9 h-9 border-border/50 hover:bg-muted"
-                onClick={() => {
-                  const iframe = document.querySelector('iframe');
-                  if (iframe) iframe.src = iframe.src;
-                  setIsLoading(true);
-                }}
-                title="Restart Game"
-              >
-                <RotateCcw className="w-4 h-4" />
-              </Button>
-              <Button 
-                variant="outline" 
-                size="icon" 
-                className="rounded-full w-9 h-9 border-border/50 hover:bg-muted"
-                onClick={() => window.open(game.url, '_blank')}
-                title="Open in New Tab"
-              >
-                <ExternalLink className="w-4 h-4" />
-              </Button>
-              <div className="w-px h-6 bg-border/30 mx-1" />
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="rounded-full w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-destructive/10"
-                onClick={onClose}
-              >
-                <X className="w-5 h-5" />
-              </Button>
+            <div>
+              <h2 className="text-xl font-black uppercase tracking-tighter italic text-foreground">
+                {game.title}
+              </h2>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-[0.2em]">
+                  ENGINE_LOADED // {game.category} // {game.players}
+                </p>
+              </div>
             </div>
           </div>
           
-          <div className="flex-1 relative bg-black">
-            {isLoading && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-[#0a0c10] backdrop-blur-sm">
-                <div className="relative w-16 h-16">
-                  <div className="absolute inset-0 border-4 border-primary/20 rounded-full" />
-                  <div className="absolute inset-0 border-4 border-t-accent rounded-full animate-spin" />
-                </div>
-                <p className="mt-4 text-[10px] font-mono uppercase tracking-[0.3em] animate-pulse text-accent">Initializing Engine...</p>
-              </div>
-            )}
-            <iframe
-              src={game.url}
-              className="w-full h-full border-none"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              allowFullScreen
-              onLoad={() => setIsLoading(false)}
-            />
+          <div className="flex items-center gap-3">
+            <Button 
+              variant="outline" 
+              size="icon" 
+              className="rounded-full w-10 h-10 bg-secondary/20 border-border/50 hover:bg-primary/20 hover:text-primary transition-all"
+              onClick={() => {
+                const iframe = document.querySelector('iframe');
+                if (iframe) iframe.src = iframe.src;
+                setIsLoading(true);
+              }}
+              title="Restart Engine"
+            >
+              <RotateCcw className="w-5 h-5" />
+            </Button>
+            <Button 
+              variant="outline" 
+              size="icon" 
+              className="rounded-full w-10 h-10 bg-secondary/20 border-border/50 hover:bg-primary/20 hover:text-primary transition-all"
+              onClick={() => window.open(game.url, '_blank')}
+              title="External Link"
+            >
+              <ExternalLink className="w-5 h-5" />
+            </Button>
+            
+            <div className="w-px h-8 bg-border/30 mx-2" />
+            
+            {/* The single main exit button */}
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="rounded-full w-12 h-12 bg-destructive/10 text-destructive hover:bg-destructive hover:text-white transition-all shadow-lg"
+              onClick={onClose}
+              title="Close Engine"
+            >
+              <X className="w-7 h-7" />
+            </Button>
           </div>
+        </div>
+        
+        {/* Full Viewport Engine Container */}
+        <div className="flex-1 relative bg-black">
+          {isLoading && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-[#0a0c10]">
+              <div className="relative w-20 h-20">
+                <div className="absolute inset-0 border-4 border-primary/10 rounded-full" />
+                <div className="absolute inset-0 border-4 border-t-accent rounded-full animate-spin" />
+              </div>
+              <p className="mt-6 text-xs font-mono uppercase tracking-[0.5em] animate-pulse text-accent">
+                Synthesizing Engine Components...
+              </p>
+            </div>
+          )}
+          <iframe
+            src={game.url}
+            className="w-full h-full border-none"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowFullScreen
+            onLoad={() => setIsLoading(false)}
+          />
         </div>
       </DialogContent>
     </Dialog>
