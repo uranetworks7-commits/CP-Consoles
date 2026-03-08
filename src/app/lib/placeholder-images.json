@@ -1,0 +1,29 @@
+
+{
+  "placeholderImages": [
+    {
+      "id": "car-game",
+      "description": "A high-speed racing game thumbnail",
+      "imageUrl": "https://picsum.photos/seed/racing1/600/400",
+      "imageHint": "racing car"
+    },
+    {
+      "id": "battle-game",
+      "description": "An intense battle arena thumbnail",
+      "imageUrl": "https://picsum.photos/seed/battle1/600/400",
+      "imageHint": "battle arena"
+    },
+    {
+      "id": "space-shooter",
+      "description": "Epic space combat thumbnail",
+      "imageUrl": "https://picsum.photos/seed/space1/600/400",
+      "imageHint": "space combat"
+    },
+    {
+      "id": "puzzle-quest",
+      "description": "Mind-bending puzzle game thumbnail",
+      "imageUrl": "https://picsum.photos/seed/puzzle1/600/400",
+      "imageHint": "puzzle game"
+    }
+  ]
+}
