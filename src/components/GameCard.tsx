@@ -2,9 +2,9 @@
 
 import Image from 'next/image';
 import { Game } from '@/lib/games';
-import { Badge } from '@/components/ui/badge';
-import { Play, Users, Cpu, ChevronRight } from 'lucide-react';
+import { Play, Eye, MousePointer2, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useState } from 'react';
 
 interface GameCardProps {
   game: Game;
@@ -12,58 +12,68 @@ interface GameCardProps {
 }
 
 export function GameCard({ game, onLaunch }: GameCardProps) {
+  const [likes, setLikes] = useState(game.likes);
+  const [dislikes, setDislikes] = useState(game.dislikes);
+
   return (
     <div 
-      className="group flex flex-col md:flex-row items-center bg-card/40 hover:bg-card border border-border/50 hover:border-accent/50 rounded-2xl overflow-hidden transition-all duration-300 cursor-pointer p-4 gap-6"
-      onClick={() => onLaunch(game)}
+      className="group flex flex-col sm:flex-row items-center bg-card/20 hover:bg-card/40 border-b border-border/50 transition-all duration-200 p-3 sm:p-4 gap-4 sm:gap-6"
     >
-      {/* Thumbnail */}
-      <div className="relative w-full md:w-48 aspect-video rounded-xl overflow-hidden shrink-0">
+      {/* Preview Thumbnail */}
+      <div className="relative w-24 h-16 sm:w-32 sm:h-20 rounded-lg overflow-hidden shrink-0 border border-border/50">
         <Image
           src={game.thumbnail}
           alt={game.title}
           fill
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
-          data-ai-hint={game.category.toLowerCase()}
+          className="object-cover"
         />
-        <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors" />
       </div>
       
-      {/* Info Row */}
-      <div className="flex-1 flex flex-col md:flex-row md:items-center gap-6 w-full">
-        <div className="flex-1 space-y-1">
-          <div className="flex items-center gap-2">
-            <h3 className="text-lg font-black tracking-tight group-hover:text-accent transition-colors font-headline uppercase">
-              {game.title}
-            </h3>
-            <Badge variant="outline" className="text-[9px] h-4 px-1.5 border-primary/30 text-primary uppercase font-bold">
-              {game.category}
-            </Badge>
-          </div>
-          <p className="text-xs text-muted-foreground line-clamp-1 max-w-xl">
-            {game.description}
-          </p>
-        </div>
+      {/* Game Info & Stats - Single Line Layout */}
+      <div className="flex-1 flex flex-col sm:flex-row sm:items-center justify-between w-full gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6">
+          <h3 className="text-base sm:text-lg font-bold tracking-tight uppercase min-w-[150px]">
+            {game.title}
+          </h3>
 
-        <div className="flex items-center gap-8 shrink-0">
-          <div className="hidden lg:flex flex-col gap-1">
-            <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground font-bold uppercase tracking-wider">
-              <Users className="w-3 h-3" />
-              {game.players}
-            </div>
-            <div className="flex items-center gap-1.5 text-[10px] text-accent font-bold uppercase tracking-wider">
-              <Cpu className="w-3 h-3" />
-              Direct-Play Ready
-            </div>
+          {/* Social / Likes */}
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={(e) => { e.stopPropagation(); setLikes(prev => prev + 1); }}
+              className="flex items-center gap-1 text-[10px] font-bold text-muted-foreground hover:text-primary transition-colors"
+            >
+              <ThumbsUp className="w-3.5 h-3.5" />
+              {likes.toLocaleString()}
+            </button>
+            <button 
+              onClick={(e) => { e.stopPropagation(); setDislikes(prev => prev + 1); }}
+              className="flex items-center gap-1 text-[10px] font-bold text-muted-foreground hover:text-destructive transition-colors"
+            >
+              <ThumbsDown className="w-3.5 h-3.5" />
+              {dislikes.toLocaleString()}
+            </button>
           </div>
 
-          <Button 
-            className="bg-primary hover:bg-primary/90 text-white font-black text-xs uppercase tracking-widest px-6 h-11 rounded-xl shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 group-hover:ring-2 ring-accent/20"
-          >
-            Play Now
-            <ChevronRight className="w-4 h-4 ml-1" />
-          </Button>
+          {/* Views & Played */}
+          <div className="flex items-center gap-4 text-muted-foreground/60">
+            <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase">
+              <Eye className="w-3.5 h-3.5" />
+              {game.views}
+            </div>
+            <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase">
+              <MousePointer2 className="w-3.5 h-3.5" />
+              {game.played}
+            </div>
+          </div>
         </div>
+
+        <Button 
+          onClick={() => onLaunch(game)}
+          className="bg-primary hover:bg-primary/90 text-white font-black text-xs uppercase tracking-widest px-8 h-10 rounded-lg shadow-lg shadow-primary/20 transition-all active:scale-95 shrink-0"
+        >
+          Play
+          <Play className="w-3 h-3 ml-2 fill-current" />
+        </Button>
       </div>
     </div>
   );

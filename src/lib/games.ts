@@ -6,61 +6,50 @@ export interface Game {
   thumbnail: string;
   category: string;
   players?: string;
+  views: string;
+  played: string;
+  likes: number;
+  dislikes: number;
 }
 
 export const GAMES_LIBRARY: Game[] = [
   {
     id: 'chaos-squad',
     title: 'CS: Chaos Squad',
-    description: 'High-octane tactical shooter. Form your squad and dominate the battlefield in this intense combat experience.',
-    url: 'https://html5.gamedistribution.com/dec78e8b416948f19832618a64afb0d7/',
+    description: 'High-octane tactical shooter.',
+    url: 'https://html5.gamedistribution.com/dec78e8b416948f19832618a64afb0d7/?gd_sdk_referrer_url=https://www.nexus.com/games/chaos-squad',
     thumbnail: 'https://picsum.photos/seed/chaos1/600/400',
     category: 'Shooter',
-    players: 'Multiplayer'
+    players: 'Multiplayer',
+    views: '1.2M',
+    played: '850K',
+    likes: 12400,
+    dislikes: 120
   },
   {
     id: 'nitro-racer',
     title: 'Nitro Racer',
-    description: 'High-speed arcade racing game. Conquer the tracks and break speed records.',
+    description: 'High-speed arcade racing game.',
     url: 'https://2212022025.github.io/Car-Game/',
     thumbnail: 'https://picsum.photos/seed/racing1/600/400',
     category: 'Racing',
-    players: 'Single Player'
+    players: 'Single Player',
+    views: '800K',
+    played: '450K',
+    likes: 8500,
+    dislikes: 45
   },
   {
     id: 'ura-battle',
     title: 'Ura Battle',
-    description: 'Intense tactical combat arena. Master your abilities and defeat your foes.',
+    description: 'Intense tactical combat arena.',
     url: 'https://ura-battle.netlify.app/',
     thumbnail: 'https://picsum.photos/seed/battle1/600/400',
     category: 'Action',
-    players: 'Multiplayer'
-  },
-  {
-    id: 'space-combat',
-    title: 'Void Horizon',
-    description: 'Navigate through asteroid fields and engage in epic space dogfights.',
-    url: 'https://picsum.photos/seed/space1/800/600',
-    thumbnail: 'https://picsum.photos/seed/space1/600/400',
-    category: 'Shooter',
-    players: 'Single Player'
-  },
-  {
-    id: 'mind-puzzle',
-    title: 'Nexus Logic',
-    description: 'A challenging puzzle game that tests your spatial awareness and logic.',
-    url: 'https://picsum.photos/seed/puzzle1/800/600',
-    thumbnail: 'https://picsum.photos/seed/puzzle1/600/400',
-    category: 'Puzzle',
-    players: 'Single Player'
-  },
-  {
-    id: 'cyber-runner',
-    title: 'Cyber Runner',
-    description: 'Neon-soaked endless runner in a dystopian future metropolis.',
-    url: 'https://picsum.photos/seed/cyber1/800/600',
-    thumbnail: 'https://picsum.photos/seed/cyber1/600/400',
-    category: 'Arcade',
-    players: 'Single Player'
+    players: 'Multiplayer',
+    views: '500K',
+    played: '320K',
+    likes: 4200,
+    dislikes: 80
   }
 ];
