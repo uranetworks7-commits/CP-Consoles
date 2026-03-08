@@ -1,10 +1,11 @@
+
 "use client";
 
 import { useState } from 'react';
 import { GAMES_LIBRARY, Game } from '@/lib/games';
 import { GameCard } from '@/components/GameCard';
 import { GameLaunchPad } from '@/components/GameLaunchPad';
-import { MonitorPlay, LayoutGrid } from 'lucide-react';
+import { MonitorPlay } from 'lucide-react';
 
 export default function Home() {
   const [activeGame, setActiveGame] = useState<Game | null>(null);

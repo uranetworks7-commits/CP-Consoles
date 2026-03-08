@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { Game } from '@/lib/games';
-import { X, Maximize2, RotateCcw, Monitor, ExternalLink } from 'lucide-react';
+import { X, RotateCcw, Monitor, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 
@@ -29,14 +29,14 @@ export function GameLaunchPad({ game, onClose }: GameLaunchPadProps) {
         <DialogTitle className="sr-only">Playing {game.title}</DialogTitle>
         
         <div className="flex flex-col h-full">
-          <div className="flex items-center justify-between px-6 py-3 bg-sidebar border-b border-border">
+          <div className="flex items-center justify-between px-6 py-3 bg-card/50 border-b border-border/30">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
                 <Monitor className="text-primary w-5 h-5" />
               </div>
               <div>
-                <h2 className="text-lg font-bold font-headline">{game.title}</h2>
-                <p className="text-xs text-muted-foreground">{game.category} • {game.players}</p>
+                <h2 className="text-lg font-bold uppercase tracking-tight italic">{game.title}</h2>
+                <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-widest">{game.category} // {game.players}</p>
               </div>
             </div>
             
@@ -44,7 +44,7 @@ export function GameLaunchPad({ game, onClose }: GameLaunchPadProps) {
               <Button 
                 variant="outline" 
                 size="icon" 
-                className="rounded-full w-9 h-9 border-border hover:bg-muted"
+                className="rounded-full w-9 h-9 border-border/50 hover:bg-muted"
                 onClick={() => {
                   const iframe = document.querySelector('iframe');
                   if (iframe) iframe.src = iframe.src;
@@ -57,13 +57,13 @@ export function GameLaunchPad({ game, onClose }: GameLaunchPadProps) {
               <Button 
                 variant="outline" 
                 size="icon" 
-                className="rounded-full w-9 h-9 border-border hover:bg-muted"
+                className="rounded-full w-9 h-9 border-border/50 hover:bg-muted"
                 onClick={() => window.open(game.url, '_blank')}
                 title="Open in New Tab"
               >
                 <ExternalLink className="w-4 h-4" />
               </Button>
-              <div className="w-px h-6 bg-border mx-1" />
+              <div className="w-px h-6 bg-border/30 mx-1" />
               <Button 
                 variant="ghost" 
                 size="icon" 
@@ -77,12 +77,12 @@ export function GameLaunchPad({ game, onClose }: GameLaunchPadProps) {
           
           <div className="flex-1 relative bg-black">
             {isLoading && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-background/50 backdrop-blur-sm">
+              <div className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-[#0a0c10] backdrop-blur-sm">
                 <div className="relative w-16 h-16">
                   <div className="absolute inset-0 border-4 border-primary/20 rounded-full" />
                   <div className="absolute inset-0 border-4 border-t-accent rounded-full animate-spin" />
                 </div>
-                <p className="mt-4 text-sm font-medium animate-pulse text-accent">Initializing Engine...</p>
+                <p className="mt-4 text-[10px] font-mono uppercase tracking-[0.3em] animate-pulse text-accent">Initializing Engine...</p>
               </div>
             )}
             <iframe
