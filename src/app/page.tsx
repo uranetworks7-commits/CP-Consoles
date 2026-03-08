@@ -5,8 +5,7 @@ import { GAMES_LIBRARY, Game } from '@/lib/games';
 import { GameCard } from '@/components/GameCard';
 import { GameLaunchPad } from '@/components/GameLaunchPad';
 import { SidebarNav } from '@/components/Sidebar';
-import { Gamepad2, Sparkles, Zap, Flame, MonitorPlay } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { MonitorPlay } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function Home() {
@@ -19,6 +18,7 @@ export default function Home() {
 
   return (
     <div className="flex min-h-screen bg-background text-foreground selection:bg-accent selection:text-accent-foreground">
+      {/* Static Sidebar - No mobile drawer */}
       <SidebarNav />
 
       <main className="flex-1 overflow-y-auto custom-scrollbar">
@@ -28,13 +28,13 @@ export default function Home() {
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-accent">
                 <MonitorPlay className="w-5 h-5" />
-                <span className="text-sm font-bold tracking-widest uppercase">System Control Panel</span>
+                <span className="text-sm font-bold tracking-widest uppercase">Direct-Play Mainframe</span>
               </div>
               <h1 className="text-4xl font-black tracking-tight font-headline">
                 CP CONSOLE <span className="text-primary">01</span>
               </h1>
               <p className="text-muted-foreground font-medium max-w-md">
-                Direct access to the Nexus mainframe. Optimized for low-latency web playback.
+                Simplified direct access to optimized gaming instances.
               </p>
             </div>
 
@@ -60,10 +60,10 @@ export default function Home() {
           <section className="space-y-4">
             <div className="flex items-center justify-between px-6 pb-2 border-b border-border/50 text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/60">
               <div className="flex gap-12">
-                <span className="w-48">Game Metadata</span>
-                <span>Experience Details</span>
+                <span className="w-48">Instance ID</span>
+                <span>Specification</span>
               </div>
-              <span>System Link</span>
+              <span>Link Protocol</span>
             </div>
 
             <div className="flex flex-col gap-3">
@@ -86,11 +86,11 @@ export default function Home() {
           <footer className="pt-12 pb-10 border-t border-border flex flex-col md:flex-row items-center justify-between gap-6 text-muted-foreground">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              <p className="text-xs font-bold tracking-tight uppercase">Core Status: Optimized</p>
+              <p className="text-xs font-bold tracking-tight uppercase">System Status: Optimal</p>
             </div>
             
             <p className="text-[10px] font-mono opacity-50 uppercase tracking-widest">
-              GameNexus OS v2.4.0-STABLE // BUILD_ID: 8829-X
+              NEXUS_CORE v2.5.1 // PID: 4012
             </p>
           </footer>
         </div>
