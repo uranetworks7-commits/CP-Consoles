@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { GAMES_LIBRARY, Game } from '@/lib/games';
 import { GameCard } from '@/components/GameCard';
 import { GameLaunchPad } from '@/components/GameLaunchPad';
-import { MonitorPlay, User, PlusCircle, LogIn, LogOut, Terminal, Cpu, AlertTriangle } from 'lucide-react';
+import { MonitorPlay, User, PlusCircle, LogIn, LogOut, Terminal, Cpu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth, useUser, useRTDB } from '@/firebase';
 import { signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
@@ -20,7 +20,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function Home() {
   const [activeGame, setActiveGame] = useState<Game | null>(null);
@@ -76,14 +75,12 @@ export default function Home() {
     setIsLoggingIn(true);
     try {
       const provider = new GoogleAuthProvider();
-      // Ensure popup is allowed and domain is whitelisted in Firebase Console
       const result = await signInWithPopup(auth, provider);
       
-      // Attempt to write user data to RTDB
       const userRef = ref(rtdb, `users/${result.user.uid}`);
       await set(userRef, {
         uid: result.user.uid,
-        username: usernameInput.trim().toUpperCase(),
+        username: usernameInput.trim(),
         email: result.user.email,
         photoURL: result.user.photoURL,
         lastActive: new Date().toISOString(),
@@ -91,7 +88,7 @@ export default function Home() {
 
       toast({
         title: "Pulse ID Verified",
-        description: `Welcome, Operator ${usernameInput.toUpperCase()}.`,
+        description: `Welcome, Operator ${usernameInput.trim()}.`,
       });
     } catch (error: any) {
       console.error("Auth Exception:", error);
@@ -129,7 +126,6 @@ export default function Home() {
     );
   }
 
-  // Unauthorized State: Direct Login Panel
   if (!user) {
     return (
       <div className="min-h-screen bg-[#0a0c10] flex flex-col items-center justify-center p-6">
@@ -159,10 +155,10 @@ export default function Home() {
                   Operator Handle
                 </label>
                 <Input
-                  placeholder="EX: COMMANDER_X"
+                  placeholder="Ex: Commander_X"
                   value={usernameInput}
                   onChange={(e) => setUsernameInput(e.target.value)}
-                  className="h-12 bg-card/10 border-border/20 focus:border-primary/50 focus:ring-primary/20 uppercase font-mono rounded-xl px-5 text-sm tracking-widest text-foreground"
+                  className="h-12 bg-card/10 border-border/20 focus:border-primary/50 focus:ring-primary/20 font-mono rounded-xl px-5 text-sm tracking-widest text-foreground"
                 />
               </div>
 
@@ -197,7 +193,6 @@ export default function Home() {
     );
   }
 
-  // Authorized State: Dashboard
   return (
     <div className="min-h-screen bg-[#0a0c10] text-foreground selection:bg-primary selection:text-primary-foreground">
       <main className="max-w-2xl mx-auto px-4 sm:px-6 py-0">
