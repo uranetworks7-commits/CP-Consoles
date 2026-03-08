@@ -5,13 +5,20 @@ import { useState, useEffect } from 'react';
 import { GAMES_LIBRARY, Game } from '@/lib/games';
 import { GameCard } from '@/components/GameCard';
 import { GameLaunchPad } from '@/components/GameLaunchPad';
-import { MonitorPlay, LogIn, LogOut, Cpu, Gamepad2, PlusCircle, ChevronDown, ChevronUp, BarChart3, Trophy, History } from 'lucide-react';
+import { MonitorPlay, LogIn, LogOut, Cpu, Gamepad2, PlusCircle, BarChart3, Trophy, History, User, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useRTDB } from '@/firebase';
 import { ref, get, child } from 'firebase/database';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 export default function Home() {
   const [activeGame, setActiveGame] = useState<Game | null>(null);
@@ -19,8 +26,6 @@ export default function Home() {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [loggedInUser, setLoggedInUser] = useState<any>(null);
   const [isInitialized, setIsInitialized] = useState(false);
-  const [showUserStats, setShowUserStats] = useState(false);
-  const [showRecentGames, setShowRecentGames] = useState(false);
   
   const rtdb = useRTDB();
   const { toast } = useToast();
@@ -75,7 +80,7 @@ export default function Home() {
       } else {
         toast({
           variant: "destructive",
-          title: "Access Denied",
+          title: "System Error",
           description: "username is not found in our system records",
         });
       }
@@ -93,8 +98,6 @@ export default function Home() {
   const handleLogout = () => {
     setLoggedInUser(null);
     localStorage.removeItem('pulse_session');
-    setShowUserStats(false);
-    setShowRecentGames(false);
     toast({
       title: "Session Terminated",
       description: "Successfully logged out.",
@@ -188,90 +191,96 @@ export default function Home() {
               </Button>
             </div>
 
-            {/* Unified Profile Section */}
-            <div className="space-y-3">
-              <div 
-                onClick={() => setShowUserStats(!showUserStats)}
-                className="flex items-center gap-4 p-3 rounded-2xl bg-card/10 border border-border/10 cursor-pointer hover:bg-card/20 transition-all group"
-              >
-                <Avatar className="h-10 w-10 border border-primary/20 group-hover:border-primary/50 transition-colors">
-                  <AvatarFallback className="bg-secondary/50 text-primary text-[11px] font-bold">
-                    {loggedInUser.username.substring(0, 2)}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1">
-                  <p className="text-[9px] text-muted-foreground uppercase font-black tracking-widest italic leading-none mb-1">User Identity</p>
-                  <p className="text-sm font-black italic tracking-tighter text-foreground leading-none">{loggedInUser.username}</p>
+            {/* Unified Profile Trigger */}
+            <Sheet>
+              <SheetTrigger asChild>
+                <div className="flex items-center gap-4 p-3 rounded-2xl bg-card/10 border border-border/10 cursor-pointer hover:bg-card/20 transition-all group">
+                  <Avatar className="h-10 w-10 border border-primary/20 group-hover:border-primary/50 transition-colors">
+                    <AvatarFallback className="bg-secondary/50 text-primary text-[11px] font-bold">
+                      {loggedInUser.username.substring(0, 2)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <p className="text-[9px] text-muted-foreground uppercase font-black tracking-widest italic leading-none mb-1">Active User</p>
+                    <p className="text-sm font-black italic tracking-tighter text-foreground leading-none">{loggedInUser.username}</p>
+                  </div>
+                  <div className="w-8 h-8 rounded-full bg-secondary/50 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                    <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-transform group-hover:translate-x-0.5" />
+                  </div>
                 </div>
-                {showUserStats ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
-              </div>
-
-              {showUserStats && (
-                <div className="bg-card/20 p-5 rounded-2xl border border-primary/20 backdrop-blur-md animate-in fade-in slide-in-from-top-2 duration-300 space-y-5">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-secondary/20 p-3 rounded-xl border border-border/10">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Trophy className="w-3 h-3 text-accent" />
-                        <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">XP Points</p>
+              </SheetTrigger>
+              <SheetContent side="right" className="bg-[#0a0c10] border-l border-border/20 text-foreground w-full sm:max-w-md p-0 flex flex-col">
+                <SheetHeader className="p-8 border-b border-border/10">
+                  <SheetTitle className="text-left">
+                    <div className="flex items-center gap-4">
+                      <Avatar className="h-16 w-16 border-2 border-primary/30">
+                        <AvatarFallback className="bg-secondary/50 text-primary text-xl font-bold">
+                          {loggedInUser.username.substring(0, 2)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest italic mb-1">Console Identity</p>
+                        <p className="text-2xl font-black italic tracking-tighter text-foreground leading-none">{loggedInUser.username}</p>
                       </div>
-                      <p className="text-lg font-black italic tracking-tighter text-foreground leading-none">
+                    </div>
+                  </SheetTitle>
+                </SheetHeader>
+
+                <div className="flex-1 overflow-y-auto custom-scrollbar p-8 space-y-8">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-secondary/20 p-5 rounded-2xl border border-border/10">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Trophy className="w-4 h-4 text-accent" />
+                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">XP Points</p>
+                      </div>
+                      <p className="text-2xl font-black italic tracking-tighter text-foreground leading-none">
                         {loggedInUser.xp || '12,450'}
                       </p>
                     </div>
                     
-                    <div className="bg-secondary/20 p-3 rounded-xl border border-border/10">
-                      <div className="flex items-center gap-2 mb-1">
-                        <BarChart3 className="w-3 h-3 text-primary" />
-                        <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Analytics</p>
+                    <div className="bg-secondary/20 p-5 rounded-2xl border border-border/10">
+                      <div className="flex items-center gap-2 mb-2">
+                        <BarChart3 className="w-4 h-4 text-primary" />
+                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Analytics</p>
                       </div>
-                      <p className="text-[10px] font-bold text-foreground">68% Win Rate</p>
-                      <p className="text-[9px] text-muted-foreground uppercase">42h Total Play</p>
+                      <p className="text-[11px] font-bold text-foreground">68% Win Rate</p>
+                      <p className="text-[9px] text-muted-foreground uppercase mt-1">42h Total Play</p>
                     </div>
                   </div>
 
-                  <div className="space-y-3">
-                    <Button 
-                      variant="ghost" 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setShowRecentGames(!showRecentGames);
-                      }}
-                      className="w-full flex items-center justify-between p-3 h-auto bg-primary/5 hover:bg-primary/10 rounded-xl border border-primary/10 text-xs font-black uppercase tracking-widest italic"
-                    >
-                      <span className="flex items-center gap-2">
-                        <History className="w-4 h-4" />
-                        Recent Play
-                      </span>
-                      {showRecentGames ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                    </Button>
-                    
-                    {showRecentGames && (
-                      <div className="p-3 bg-black/40 rounded-xl border border-border/10 animate-in fade-in zoom-in-95 duration-200">
-                        <p className="text-[9px] text-muted-foreground uppercase font-bold mb-2">Recent Game played:</p>
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
-                            <MonitorPlay className="w-5 h-5 text-primary" />
-                          </div>
-                          <div>
-                            <p className="text-xs font-black italic uppercase tracking-tighter">CS: Chaos Squad</p>
-                            <p className="text-[9px] text-muted-foreground uppercase">Played 2 hours ago</p>
-                          </div>
+                  <div className="space-y-4">
+                    <div className="p-5 bg-black/40 rounded-2xl border border-border/10">
+                      <div className="flex items-center justify-between mb-4">
+                        <span className="flex items-center gap-2 text-xs font-black uppercase tracking-widest italic">
+                          <History className="w-4 h-4 text-primary" />
+                          Recent Play
+                        </span>
+                        <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                      </div>
+                      
+                      <div className="flex items-center gap-4 p-3 bg-secondary/10 rounded-xl border border-border/5">
+                        <div className="w-12 h-12 rounded-lg bg-primary/20 flex items-center justify-center">
+                          <MonitorPlay className="w-6 h-6 text-primary" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-black italic uppercase tracking-tighter">CS: Chaos Squad</p>
+                          <p className="text-[10px] text-muted-foreground uppercase">Played 2 hours ago</p>
                         </div>
                       </div>
-                    )}
+                    </div>
 
                     <Button 
                       variant="ghost" 
                       onClick={handleLogout}
-                      className="w-full flex items-center justify-center gap-2 h-10 bg-destructive/5 hover:bg-destructive/10 text-destructive rounded-xl border border-destructive/10 text-[9px] font-black uppercase tracking-widest"
+                      className="w-full flex items-center justify-center gap-3 h-14 bg-destructive/5 hover:bg-destructive/10 text-destructive rounded-2xl border border-destructive/10 text-[10px] font-black uppercase tracking-widest transition-all mt-4"
                     >
-                      <LogOut className="w-3.5 h-3.5" />
+                      <LogOut className="w-4 h-4" />
                       Logout Console
                     </Button>
                   </div>
                 </div>
-              )}
-            </div>
+              </SheetContent>
+            </Sheet>
           </div>
         </header>
 
