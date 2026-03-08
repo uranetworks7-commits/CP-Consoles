@@ -4,10 +4,10 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { GAMES_LIBRARY, Game } from '@/lib/games';
 import { GameCard } from '@/components/GameCard';
 import { GameLaunchPad } from '@/components/GameLaunchPad';
-import { MonitorPlay, LogOut, Cpu, Gamepad2, PlusCircle, History, Settings, Sun, Moon, ArrowLeft, Rocket, Key, CheckCircle2, BarChart3, Edit3, Save, X as CloseIcon, Share2, Check } from 'lucide-react';
+import { MonitorPlay, LogOut, Cpu, Gamepad2, PlusCircle, History, Settings, Sun, Moon, ArrowLeft, Rocket, Key, CheckCircle2, BarChart3, Edit3, Save, X as CloseIcon, Share2, Check, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useRTDB } from '@/firebase';
-import { ref, get, child, update, push, onValue, off } from 'firebase/database';
+import { ref, get, child, update, push, onValue, off, remove } from 'firebase/database';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
@@ -39,6 +39,8 @@ export default function Home() {
   const [showUserAnalytics, setShowUserAnalytics] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [editingApp, setEditingApp] = useState<any>(null);
+  const [appToDelete, setAppToDelete] = useState<any>(null);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
 
   // RTDB Submissions State
   const [allSubmissions, setAllSubmissions] = useState<any[]>([]);
@@ -225,6 +227,8 @@ export default function Home() {
     setShowNewProject(false);
     setShowUserAnalytics(false);
     setIsAdminMode(false);
+    setAppToDelete(null);
+    setEditingApp(null);
     toast({ title: "Session Terminated", description: "Successfully logged out." });
   };
 
@@ -297,6 +301,18 @@ export default function Home() {
       setEditingApp(null);
     } catch (e) {
       toast({ variant: "destructive", title: "Update Failure", description: "Failed to update engine parameters." });
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!rtdb || !appToDelete) return;
+    try {
+      await remove(ref(rtdb, `submissions/${appToDelete.id}`));
+      toast({ title: "App Terminated", description: "Application removed from system permanently." });
+      setAppToDelete(null);
+      setDeleteConfirmText('');
+    } catch (e) {
+      toast({ variant: "destructive", title: "Error", description: "Failed to purge record." });
     }
   };
 
@@ -490,9 +506,14 @@ export default function Home() {
                         </span>
                       </div>
                     </div>
-                    <Button variant="ghost" size="icon" onClick={() => setEditingApp(app)} className="rounded-xl bg-secondary/30 hover:bg-primary/20 hover:text-primary">
-                      <Edit3 className="w-4 h-4" />
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Button variant="ghost" size="icon" onClick={() => setEditingApp(app)} className="rounded-xl bg-secondary/30 hover:bg-primary/20 hover:text-primary">
+                        <Edit3 className="w-4 h-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={() => setAppToDelete(app)} className="rounded-xl bg-destructive/10 text-destructive hover:bg-destructive hover:text-white">
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </div>
                   
                   <div className="grid grid-cols-3 gap-4">
@@ -547,6 +568,37 @@ export default function Home() {
             <ShadDialogFooter>
               <Button onClick={handleUpdateApp} className="w-full bg-primary hover:bg-primary/90 text-white font-black uppercase tracking-widest rounded-xl">
                 <Save className="w-4 h-4 mr-2" /> Save Protocol Changes
+              </Button>
+            </ShadDialogFooter>
+          </ShadDialogContent>
+        </ShadDialog>
+
+        <ShadDialog open={!!appToDelete} onOpenChange={(open) => { if(!open) { setAppToDelete(null); setDeleteConfirmText(''); } }}>
+          <ShadDialogContent className="rounded-3xl border-destructive/30 bg-card/95 backdrop-blur-xl max-w-sm">
+            <ShadDialogHeader>
+              <ShadDialogTitle className="text-xl font-black uppercase italic tracking-tighter text-destructive">Terminate Application?</ShadDialogTitle>
+            </ShadDialogHeader>
+            <div className="space-y-4 py-4 text-center">
+              <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest leading-relaxed">
+                Do You Want To delete <span className="text-foreground italic">{appToDelete?.gameName}</span>?
+                <br />
+                Type <span className="text-primary font-black">Delete</span> to Remove it permanent.
+              </p>
+              <Input 
+                value={deleteConfirmText} 
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                placeholder="Type 'Delete' here"
+                className="rounded-xl bg-secondary/20 border-destructive/20 text-center"
+              />
+            </div>
+            <ShadDialogFooter>
+              <Button 
+                variant="destructive"
+                disabled={deleteConfirmText !== 'Delete'}
+                onClick={handleConfirmDelete}
+                className="w-full font-black uppercase tracking-widest rounded-xl h-12 shadow-lg shadow-destructive/20"
+              >
+                Confirm Termination
               </Button>
             </ShadDialogFooter>
           </ShadDialogContent>
@@ -646,7 +698,7 @@ export default function Home() {
                       onClick={() => setShowNewProject(true)} 
                       className="w-full h-14 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl border-none text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20"
                     >
-                      <PlusCircle className="w-4 h-4 mr-2" /> New Project
+                      <PlusCircle className="w-4 h-4 mr-2" /> New Application
                     </Button>
                     <div className="p-5 bg-card rounded-2xl border border-border shadow-sm">
                       <p className="text-xs font-black uppercase tracking-widest italic flex items-center gap-2 mb-4">
