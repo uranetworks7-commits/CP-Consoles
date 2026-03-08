@@ -18,21 +18,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 
 export default function Home() {
   const [activeGame, setActiveGame] = useState<Game | null>(null);
   const [usernameInput, setUsernameInput] = useState('');
-  const [isRegistering, setIsRegistering] = useState(false);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [userData, setUserData] = useState<any>(null);
   const [dbLoading, setDbLoading] = useState(true);
   
@@ -61,58 +53,57 @@ export default function Home() {
   }, [rtdb, user]);
 
   const handleLogin = async () => {
-    if (!auth) {
+    if (!auth || !rtdb) {
       toast({
         variant: "destructive",
         title: "System Error",
-        description: "Authentication module not initialized.",
+        description: "Core modules not initialized.",
+      });
+      return;
+    }
+
+    if (!usernameInput.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Identification Required",
+        description: "Please enter your Operator Handle.",
       });
       return;
     }
     
+    setIsLoggingIn(true);
     try {
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+      
+      // Save/Update profile in RTDB
+      const userRef = ref(rtdb, `users/${result.user.uid}`);
+      await set(userRef, {
+        uid: result.user.uid,
+        username: usernameInput.trim().toUpperCase(),
+        email: result.user.email,
+        photoURL: result.user.photoURL,
+        updatedAt: new Date().toISOString(),
+      });
+
+      toast({
+        title: "Pulse ID Initialized",
+        description: `Welcome to the Nexus, ${usernameInput.toUpperCase()}.`,
+      });
     } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Authentication Failed",
         description: error.message,
       });
+    } finally {
+      setIsLoggingIn(false);
     }
   };
 
   const handleLogout = async () => {
     if (!auth) return;
     await signOut(auth);
-  };
-
-  const handleRegisterProfile = async () => {
-    if (!rtdb || !user || !usernameInput.trim()) return;
-    
-    setIsRegistering(true);
-    try {
-      const userRef = ref(rtdb, `users/${user.uid}`);
-      await set(userRef, {
-        uid: user.uid,
-        username: usernameInput.trim().toUpperCase(),
-        email: user.email,
-        photoURL: user.photoURL,
-        createdAt: new Date().toISOString(),
-      });
-      toast({
-        title: "Pulse ID Initialized",
-        description: `Welcome to the Nexus, ${usernameInput}.`,
-      });
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Registration Error",
-        description: "Could not initialize Pulse ID.",
-      });
-    } finally {
-      setIsRegistering(false);
-    }
   };
 
   if (authLoading || (user && dbLoading)) {
@@ -131,36 +122,62 @@ export default function Home() {
   if (!user) {
     return (
       <div className="min-h-screen bg-[#0a0c10] flex flex-col items-center justify-center p-6 animate-fade-in">
-        <div className="w-full max-w-sm space-y-8 bg-card/20 p-10 rounded-[2.5rem] border border-border/30 shadow-2xl backdrop-blur-md relative overflow-hidden group">
-          <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-colors duration-1000" />
+        <div className="w-full max-w-md space-y-8 bg-card/20 p-10 rounded-[2.5rem] border border-border/30 shadow-2xl backdrop-blur-md relative overflow-hidden group">
+          <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/10 rounded-full blur-3xl" />
           
-          <div className="relative space-y-6 text-center">
-            <div className="w-20 h-20 rounded-[2rem] bg-gradient-to-br from-primary to-accent p-[2px] mx-auto shadow-2xl shadow-primary/20 transition-transform duration-500 group-hover:scale-110">
-              <div className="w-full h-full bg-[#0a0c10] rounded-[1.9rem] flex items-center justify-center">
-                <MonitorPlay className="text-primary w-10 h-10" />
+          <div className="relative space-y-8">
+            <div className="text-center space-y-4">
+              <div className="w-20 h-20 rounded-[2rem] bg-gradient-to-br from-primary to-accent p-[2px] mx-auto shadow-2xl shadow-primary/20">
+                <div className="w-full h-full bg-[#0a0c10] rounded-[1.9rem] flex items-center justify-center">
+                  <Terminal className="text-primary w-10 h-10" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <h1 className="text-4xl font-black uppercase italic tracking-tighter text-foreground leading-none">
+                  Pulse Console
+                </h1>
+                <p className="text-muted-foreground/60 text-[10px] font-mono uppercase tracking-[0.4em]">
+                  Initialize System Identity
+                </p>
               </div>
             </div>
-            
-            <div className="space-y-2">
-              <h1 className="text-4xl font-black uppercase italic tracking-tighter text-foreground leading-none">
-                Pulse Console
-              </h1>
-              <p className="text-muted-foreground/60 text-[10px] font-mono uppercase tracking-[0.4em]">
-                Secure Operator Terminal
-              </p>
-            </div>
 
-            <Button 
-              onClick={handleLogin}
-              className="w-full bg-primary hover:bg-primary/90 text-white h-14 rounded-2xl font-black uppercase tracking-[0.15em] gap-3 shadow-xl shadow-primary/20 transition-all active:scale-95 text-xs"
-            >
-              <LogIn className="w-5 h-5" />
-              Initialize Login
-            </Button>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/80 ml-1">
+                  Operator Handle
+                </label>
+                <Input
+                  placeholder="OPERATOR_X"
+                  value={usernameInput}
+                  onChange={(e) => setUsernameInput(e.target.value)}
+                  className="h-14 bg-card/10 border-border/20 focus:border-primary/50 focus:ring-primary/20 uppercase font-mono rounded-2xl px-5 text-sm tracking-widest text-foreground"
+                />
+              </div>
+
+              <Button 
+                onClick={handleLogin}
+                disabled={isLoggingIn || !usernameInput.trim()}
+                className="w-full bg-primary hover:bg-primary/90 text-white h-14 rounded-2xl font-black uppercase tracking-[0.15em] gap-3 shadow-xl shadow-primary/20 transition-all active:scale-95 text-xs"
+              >
+                {isLoggingIn ? (
+                  <div className="flex gap-2">
+                    <div className="w-2 h-2 bg-white rounded-full animate-bounce" />
+                    <div className="w-2 h-2 bg-white rounded-full animate-bounce [animation-delay:0.2s]" />
+                    Syncing...
+                  </div>
+                ) : (
+                  <>
+                    <LogIn className="w-5 h-5" />
+                    Initialize Login
+                  </>
+                )}
+              </Button>
+            </div>
             
-            <div className="pt-4">
-              <p className="text-[8px] font-mono text-muted-foreground/30 uppercase tracking-[0.2em] border-t border-border/10 pt-4">
-                Nexus_OS // Secured_Link_v4.0.2
+            <div className="pt-4 border-t border-border/10">
+              <p className="text-[8px] font-mono text-center text-muted-foreground/30 uppercase tracking-[0.2em]">
+                Nexus_OS // Identity_Link_Required
               </p>
             </div>
           </div>
@@ -168,8 +185,6 @@ export default function Home() {
       </div>
     );
   }
-
-  const showRegistration = user && !userData && !dbLoading;
 
   return (
     <div className="min-h-screen bg-[#0a0c10] text-foreground selection:bg-primary selection:text-primary-foreground">
@@ -270,52 +285,6 @@ export default function Home() {
           <p className="text-[8px] font-mono uppercase tracking-widest">© Pulse_Consoles_Inc</p>
         </footer>
       </main>
-
-      <Dialog open={showRegistration}>
-        <DialogContent className="sm:max-w-md bg-[#0a0c10] border-border/30 text-foreground [&>button]:hidden rounded-[2.5rem] p-8 shadow-3xl">
-          <DialogHeader className="space-y-4">
-            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20 mx-auto sm:mx-0">
-              <Terminal className="text-primary w-8 h-8" />
-            </div>
-            <div className="space-y-1">
-              <DialogTitle className="text-2xl font-black uppercase italic tracking-tighter">Initialize Pulse ID</DialogTitle>
-              <DialogDescription className="text-muted-foreground/60 text-[11px] leading-relaxed">
-                Unauthorized identity detected. Please register your console operator handle to access the Nexus library.
-              </DialogDescription>
-            </div>
-          </DialogHeader>
-          <div className="flex flex-col gap-6 py-6">
-            <div className="flex flex-col gap-3">
-              <label htmlFor="username" className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/80 ml-1">
-                Operator Handle
-              </label>
-              <Input
-                id="username"
-                placeholder="OPERATOR_X"
-                value={usernameInput}
-                onChange={(e) => setUsernameInput(e.target.value)}
-                className="h-14 bg-card/10 border-border/20 focus:border-primary/50 focus:ring-primary/20 uppercase font-mono rounded-2xl px-5 text-sm tracking-widest"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button 
-              type="submit" 
-              onClick={handleRegisterProfile}
-              disabled={!usernameInput.trim() || isRegistering}
-              className="w-full bg-primary hover:bg-primary/90 text-white font-black uppercase tracking-[0.2em] h-14 rounded-2xl shadow-xl shadow-primary/20 transition-all active:scale-95"
-            >
-              {isRegistering ? (
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 bg-white rounded-full animate-bounce" />
-                  <div className="w-2 h-2 bg-white rounded-full animate-bounce [animation-delay:0.2s]" />
-                  Synchronizing...
-                </div>
-              ) : "Finalize Profile"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       <GameLaunchPad 
         game={activeGame} 
