@@ -434,7 +434,7 @@ export default function Home() {
 
                 <div className="flex-1 overflow-y-auto custom-scrollbar p-8 space-y-8">
                   <div className="space-y-4">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">System Configuration</p>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">System Setting</p>
                     <div className="flex items-center justify-between p-4 bg-secondary/30 dark:bg-secondary/10 rounded-2xl border border-border">
                       <span className="text-xs font-bold uppercase tracking-widest">Console Theme</span>
                       <Button 
