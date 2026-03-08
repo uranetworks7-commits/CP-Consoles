@@ -2,18 +2,28 @@
 
 import Image from 'next/image';
 import { Game } from '@/lib/games';
-import { Eye, MousePointer2, ThumbsUp, ThumbsDown, Play, Share2, MoreVertical, Bookmark, User, Info } from 'lucide-react';
+import { Eye, MousePointer2, ThumbsUp, ThumbsDown, Play, Share2, MoreVertical, Bookmark, User, Info, AlertTriangle, MessageSquare, Fingerprint, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { useRTDB } from '@/firebase';
-import { ref, update, remove } from 'firebase/database';
+import { ref, update, remove, push } from 'firebase/database';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
 
 interface GameCardProps {
   game: Game;
@@ -28,7 +38,16 @@ export function GameCard({ game, onLaunch, user, onAboutDev, savedGames }: GameC
   const [dislikes, setDislikes] = useState(game.dislikes || 0);
   const [userVote, setUserVote] = useState<'like' | 'dislike' | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  
+  const [showIdDialog, setShowIdDialog] = useState(false);
+  const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
+  const [showReportDialog, setShowReportDialog] = useState(false);
+  
+  const [feedback, setFeedback] = useState('');
+  const [reportReason, setReportReason] = useState('');
+  
   const rtdb = useRTDB();
+  const { toast } = useToast();
 
   const isSaved = useMemo(() => {
     return savedGames.some(sg => sg.id === game.id);
@@ -100,6 +119,32 @@ export function GameCard({ game, onLaunch, user, onAboutDev, savedGames }: GameC
     }, 1200);
   };
 
+  const submitFeedback = async () => {
+    if (!rtdb || !feedback.trim()) return;
+    const feedbackRef = push(ref(rtdb, `submissions/${game.id}/feedback`));
+    await update(feedbackRef, {
+      text: feedback,
+      userId: user?.username || 'anonymous',
+      timestamp: new Date().toISOString()
+    });
+    setFeedback('');
+    setShowFeedbackDialog(false);
+    toast({ title: "Feedback Sent", description: "Your message has been transmitted." });
+  };
+
+  const submitReport = async () => {
+    if (!rtdb || !reportReason.trim()) return;
+    const reportRef = push(ref(rtdb, `submissions/${game.id}/reports`));
+    await update(reportRef, {
+      reason: reportReason,
+      userId: user?.username || 'anonymous',
+      timestamp: new Date().toISOString()
+    });
+    setReportReason('');
+    setShowReportDialog(false);
+    toast({ title: "Report Submitted", description: "The core team will review this incident." });
+  };
+
   return (
     <div 
       className="group flex flex-col bg-secondary/10 hover:bg-secondary/20 border border-border/50 rounded-[2rem] transition-all duration-300 p-5 gap-5 shadow-sm hover:shadow-2xl hover:shadow-primary/5 hover:border-primary/30 relative"
@@ -137,6 +182,9 @@ export function GameCard({ game, onLaunch, user, onAboutDev, savedGames }: GameC
                   <DropdownMenuItem onClick={() => onAboutDev(game)} className="font-black uppercase italic tracking-widest text-[10px] gap-3 py-2.5 cursor-pointer">
                     <User className="w-3.5 h-3.5" /> About Developer
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setShowIdDialog(true)} className="font-black uppercase italic tracking-widest text-[10px] gap-3 py-2.5 cursor-pointer">
+                    <Fingerprint className="w-3.5 h-3.5" /> Post Id
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -154,7 +202,7 @@ export function GameCard({ game, onLaunch, user, onAboutDev, savedGames }: GameC
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex flex-col gap-3">
         <div className="flex bg-secondary/30 rounded-2xl p-1.5 border border-border/50 flex-1">
           <button 
             onClick={handleLike}
@@ -182,6 +230,24 @@ export function GameCard({ game, onLaunch, user, onAboutDev, savedGames }: GameC
             {dislikes.toLocaleString()}
           </button>
         </div>
+
+        <div className="flex items-center justify-center gap-6 px-4 py-1">
+          <button 
+            onClick={() => setShowFeedbackDialog(true)}
+            className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-accent transition-colors"
+          >
+            <MessageSquare className="w-3.5 h-3.5" />
+            Feedback
+          </button>
+          <div className="w-1 h-1 rounded-full bg-border" />
+          <button 
+            onClick={() => setShowReportDialog(true)}
+            className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-destructive transition-colors"
+          >
+            <AlertTriangle className="w-3.5 h-3.5" />
+            Report
+          </button>
+        </div>
       </div>
 
       <Button 
@@ -202,6 +268,82 @@ export function GameCard({ game, onLaunch, user, onAboutDev, savedGames }: GameC
           </div>
         )}
       </Button>
+
+      {/* Post ID Dialog */}
+      <Dialog open={showIdDialog} onOpenChange={setShowIdDialog}>
+        <DialogContent className="rounded-3xl border-border bg-card/95 backdrop-blur-xl max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-black uppercase italic tracking-tighter">Engine Identifier</DialogTitle>
+          </DialogHeader>
+          <div className="py-6 text-center">
+            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 italic">System Post ID</p>
+            <p className="font-mono text-primary text-sm bg-secondary/20 p-4 rounded-xl border border-border/50 break-all">
+              {game.id}
+            </p>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setShowIdDialog(false)} className="w-full font-black uppercase tracking-widest rounded-xl">Dismiss</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Feedback Dialog */}
+      <Dialog open={showFeedbackDialog} onOpenChange={setShowFeedbackDialog}>
+        <DialogContent className="rounded-3xl border-border bg-card/95 backdrop-blur-xl max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-black uppercase italic tracking-tighter">Submit Feedback</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">Your Message</Label>
+              <Input 
+                placeholder="Transmitting feedback..." 
+                value={feedback} 
+                onChange={(e) => setFeedback(e.target.value)}
+                className="rounded-xl bg-secondary/10"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button 
+              onClick={submitFeedback} 
+              disabled={!feedback.trim()}
+              className="w-full bg-accent hover:bg-accent/90 text-accent-foreground font-black uppercase tracking-widest rounded-xl h-12"
+            >
+              Sent
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Report Dialog */}
+      <Dialog open={showReportDialog} onOpenChange={setShowReportDialog}>
+        <DialogContent className="rounded-3xl border-destructive/30 bg-card/95 backdrop-blur-xl max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-black uppercase italic tracking-tighter text-destructive">Report Engine</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">Reasons for Reporting</Label>
+              <Input 
+                placeholder="Specify violation..." 
+                value={reportReason} 
+                onChange={(e) => setReportReason(e.target.value)}
+                className="rounded-xl bg-secondary/10"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button 
+              onClick={submitReport} 
+              disabled={!reportReason.trim()}
+              className="w-full bg-destructive hover:bg-destructive/90 text-white font-black uppercase tracking-widest rounded-xl h-12"
+            >
+              Submit
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
