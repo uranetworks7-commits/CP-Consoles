@@ -36,7 +36,7 @@ export default function Home() {
   const [userData, setUserData] = useState<any>(null);
   const [dbLoading, setDbLoading] = useState(true);
   
-  const { auth } = useAuth();
+  const auth = useAuth();
   const rtdb = useRTDB();
   const { user, loading: authLoading } = useUser();
   const { toast } = useToast();
@@ -61,7 +61,15 @@ export default function Home() {
   }, [rtdb, user]);
 
   const handleLogin = async () => {
-    if (!auth) return;
+    if (!auth) {
+      toast({
+        variant: "destructive",
+        title: "System Error",
+        description: "Authentication module not initialized.",
+      });
+      return;
+    }
+    
     try {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
@@ -120,7 +128,6 @@ export default function Home() {
     );
   }
 
-  // DIRECT LOGIN PANEL
   if (!user) {
     return (
       <div className="min-h-screen bg-[#0a0c10] flex flex-col items-center justify-center p-6 animate-fade-in">
@@ -167,7 +174,6 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-[#0a0c10] text-foreground selection:bg-primary selection:text-primary-foreground">
       <main className="max-w-2xl mx-auto px-4 sm:px-6 py-0">
-        {/* STICKY HEADER - NOT SCROLLING */}
         <header className="sticky top-0 z-30 bg-[#0a0c10]/95 backdrop-blur-xl border-b border-border/20 py-5 transition-all duration-300">
           <div className="flex flex-col gap-5">
             <div className="flex items-center justify-between">
@@ -265,7 +271,6 @@ export default function Home() {
         </footer>
       </main>
 
-      {/* IDENTITY INITIALIZATION DIALOG */}
       <Dialog open={showRegistration}>
         <DialogContent className="sm:max-w-md bg-[#0a0c10] border-border/30 text-foreground [&>button]:hidden rounded-[2.5rem] p-8 shadow-3xl">
           <DialogHeader className="space-y-4">
