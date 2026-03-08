@@ -4,10 +4,10 @@ import Image from 'next/image';
 import { Game } from '@/lib/games';
 import { Eye, MousePointer2, ThumbsUp, ThumbsDown, Play, Share2, MoreVertical, Bookmark, User, AlertTriangle, MessageSquare, Fingerprint } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { useRTDB } from '@/firebase';
-import { ref, update, remove, push } from 'firebase/database';
+import { ref, update, remove, push, onValue, off } from 'firebase/database';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -35,8 +35,6 @@ interface GameCardProps {
 }
 
 export function GameCard({ game, onLaunch, user, onAboutDev, onShowId, savedGames }: GameCardProps) {
-  const [likes, setLikes] = useState(game.likes || 0);
-  const [dislikes, setDislikes] = useState(game.dislikes || 0);
   const [userVote, setUserVote] = useState<'like' | 'dislike' | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   
@@ -49,6 +47,16 @@ export function GameCard({ game, onLaunch, user, onAboutDev, onShowId, savedGame
   const rtdb = useRTDB();
   const { toast } = useToast();
 
+  // Sync individual user vote from RTDB to prevent duplicates and enable cross-session tracking
+  useEffect(() => {
+    if (!rtdb || !user || !game.id) return;
+    const voteRef = ref(rtdb, `submissions/${game.id}/userVotes/${user.username}`);
+    const unsubscribe = onValue(voteRef, (snapshot) => {
+      setUserVote(snapshot.val());
+    });
+    return () => off(voteRef, 'value', unsubscribe);
+  }, [rtdb, user, game.id]);
+
   const isSaved = useMemo(() => {
     return savedGames.some(sg => sg.id === game.id);
   }, [savedGames, game.id]);
@@ -57,52 +65,63 @@ export function GameCard({ game, onLaunch, user, onAboutDev, onShowId, savedGame
     return num >= 1000 ? `${(num / 1000).toFixed(1)}K` : num;
   };
 
-  const syncVotes = (newL: number, newD: number) => {
-    if (!rtdb) return;
-    const gameRef = ref(rtdb, `submissions/${game.id}`);
-    update(gameRef, { likes: newL, dislikes: newD });
-  };
-
   const handleLike = (e: React.MouseEvent) => {
     e.stopPropagation();
-    let newL = likes;
-    let newD = dislikes;
+    if (!rtdb || !user) return;
+
+    let newLikes = game.likes || 0;
+    let newDislikes = game.dislikes || 0;
+    let nextVote: 'like' | null = null;
 
     if (userVote === 'like') {
-      newL -= 1;
-      setUserVote(null);
+      newLikes = Math.max(0, newLikes - 1);
+      nextVote = null;
     } else {
-      newL += 1;
-      if (userVote === 'dislike') newD -= 1;
-      setUserVote('like');
+      newLikes += 1;
+      if (userVote === 'dislike') {
+        newDislikes = Math.max(0, newDislikes - 1);
+      }
+      nextVote = 'like';
     }
+
+    const updates: any = {};
+    updates[`submissions/${game.id}/likes`] = newLikes;
+    updates[`submissions/${game.id}/dislikes`] = newDislikes;
+    updates[`submissions/${game.id}/userVotes/${user.username}`] = nextVote;
     
-    setLikes(newL);
-    setDislikes(newD);
-    syncVotes(newL, newD);
+    update(ref(rtdb), updates);
   };
 
   const handleDislike = (e: React.MouseEvent) => {
     e.stopPropagation();
-    let newL = likes;
-    let newD = dislikes;
+    if (!rtdb || !user) return;
+
+    let newLikes = game.likes || 0;
+    let newDislikes = game.dislikes || 0;
+    let nextVote: 'dislike' | null = null;
 
     if (userVote === 'dislike') {
-      newD -= 1;
-      setUserVote(null);
+      newDislikes = Math.max(0, newDislikes - 1);
+      nextVote = null;
     } else {
-      newD += 1;
-      if (userVote === 'like') newL -= 1;
-      setUserVote('dislike');
+      newDislikes += 1;
+      if (userVote === 'like') {
+        newLikes = Math.max(0, newLikes - 1);
+      }
+      nextVote = 'dislike';
     }
+
+    const updates: any = {};
+    updates[`submissions/${game.id}/likes`] = newLikes;
+    updates[`submissions/${game.id}/dislikes`] = newDislikes;
+    updates[`submissions/${game.id}/userVotes/${user.username}`] = nextVote;
     
-    setLikes(newL);
-    setDislikes(newD);
-    syncVotes(newL, newD);
+    update(ref(rtdb), updates);
   };
 
   const handleShare = () => {
     navigator.clipboard.writeText(game.url);
+    toast({ title: "Link Copied", description: "Engine protocol shared to clipboard." });
   };
 
   const handleSave = async () => {
@@ -110,8 +129,10 @@ export function GameCard({ game, onLaunch, user, onAboutDev, onShowId, savedGame
     const saveRef = ref(rtdb, `users/${user.username}/savedGames/${game.id}`);
     if (isSaved) {
       remove(saveRef);
+      toast({ title: "Removed", description: "Engine removed from saved items." });
     } else {
       update(saveRef, game);
+      toast({ title: "Saved", description: "Engine secured in saved items." });
     }
   };
 
@@ -218,7 +239,7 @@ export function GameCard({ game, onLaunch, user, onAboutDev, onShowId, savedGame
             )}
           >
             <ThumbsUp className={cn("w-4 h-4", userVote === 'like' && "fill-current")} />
-            {formatK(likes)}
+            {formatK(game.likes || 0)}
           </button>
           <div className="w-px h-5 bg-border/50 self-center mx-1.5" />
           <button 
@@ -231,7 +252,7 @@ export function GameCard({ game, onLaunch, user, onAboutDev, onShowId, savedGame
             )}
           >
             <ThumbsDown className={cn("w-4 h-4", userVote === 'dislike' && "fill-current")} />
-            {formatK(dislikes)}
+            {formatK(game.dislikes || 0)}
           </button>
         </div>
 

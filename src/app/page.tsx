@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { GAMES_LIBRARY, Game } from '@/lib/games';
 import { GameCard } from '@/components/GameCard';
 import { GameLaunchPad } from '@/components/GameLaunchPad';
-import { MonitorPlay, LogOut, Cpu, Gamepad2, PlusCircle, History, Settings, Sun, Moon, ArrowLeft, Rocket, Key, CheckCircle2, BarChart3, Edit3, Save, X as CloseIcon, Share2, Check, Trash2, Bookmark, User, Fingerprint, Search } from 'lucide-react';
+import { MonitorPlay, LogOut, Cpu, Gamepad2, PlusCircle, History, Settings, Sun, Moon, ArrowLeft, Rocket, Key, CheckCircle2, BarChart3, Edit3, Save, X as CloseIcon, Share2, Check, Trash2, Bookmark, User, Fingerprint, Search, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useRTDB } from '@/firebase';
 import { ref, get, child, update, push, onValue, off, remove } from 'firebase/database';
@@ -380,7 +380,7 @@ export default function Home() {
               disabled={isLoggingIn || !usernameInput.trim()}
               className="w-full bg-primary hover:bg-primary/90 text-white h-12 rounded-xl font-black uppercase tracking-[0.15em] shadow-xl shadow-primary/20"
             >
-              {isLoggingIn ? "Initializing..." : "Initialize Login"}
+              {isLoggingIn ? "Initializing..." : <><LogIn className="w-4 h-4 mr-2" /> Login</>}
             </Button>
           </div>
         </div>
