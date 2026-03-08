@@ -11,6 +11,8 @@ export interface Game {
   played: string;
   likes: number;
   dislikes: number;
+  developerInfo?: string;
+  profileImageUrl?: string;
 }
 
 export const GAMES_LIBRARY: Game[] = [
@@ -25,7 +27,9 @@ export const GAMES_LIBRARY: Game[] = [
     views: '1.2M',
     played: '850K',
     likes: 12400,
-    dislikes: 120
+    dislikes: 120,
+    developerInfo: 'Nexus Core Labs',
+    profileImageUrl: 'https://picsum.photos/seed/dev1/100/100'
   },
   {
     id: 'battle-royal',
@@ -38,7 +42,9 @@ export const GAMES_LIBRARY: Game[] = [
     views: '950K',
     played: '620K',
     likes: 9200,
-    dislikes: 80
+    dislikes: 80,
+    developerInfo: 'Apex Systems',
+    profileImageUrl: 'https://picsum.photos/seed/dev2/100/100'
   },
   {
     id: 'nitro-racer',
@@ -51,6 +57,8 @@ export const GAMES_LIBRARY: Game[] = [
     views: '800K',
     played: '450K',
     likes: 8500,
-    dislikes: 45
+    dislikes: 45,
+    developerInfo: 'Drift Masters',
+    profileImageUrl: 'https://picsum.photos/seed/dev3/100/100'
   }
 ];

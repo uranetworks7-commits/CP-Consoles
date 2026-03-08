@@ -1,10 +1,11 @@
+
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { GAMES_LIBRARY, Game } from '@/lib/games';
 import { GameCard } from '@/components/GameCard';
 import { GameLaunchPad } from '@/components/GameLaunchPad';
-import { MonitorPlay, LogOut, Cpu, Gamepad2, PlusCircle, History, Settings, Sun, Moon, ArrowLeft, Rocket, Key, CheckCircle2, BarChart3, Edit3, Save, X as CloseIcon, Share2, Check, Trash2 } from 'lucide-react';
+import { MonitorPlay, LogOut, Cpu, Gamepad2, PlusCircle, History, Settings, Sun, Moon, ArrowLeft, Rocket, Key, CheckCircle2, BarChart3, Edit3, Save, X as CloseIcon, Share2, Check, Trash2, Bookmark } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useRTDB } from '@/firebase';
 import { ref, get, child, update, push, onValue, off, remove } from 'firebase/database';
@@ -37,6 +38,7 @@ export default function Home() {
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const [showNewProject, setShowNewProject] = useState(false);
   const [showUserAnalytics, setShowUserAnalytics] = useState(false);
+  const [showSavedGames, setShowSavedGames] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [editingApp, setEditingApp] = useState<any>(null);
   const [appToDelete, setAppToDelete] = useState<any>(null);
@@ -44,6 +46,7 @@ export default function Home() {
 
   // RTDB Submissions State
   const [allSubmissions, setAllSubmissions] = useState<any[]>([]);
+  const [savedGames, setSavedGames] = useState<any[]>([]);
 
   // Admin State
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
@@ -83,6 +86,21 @@ export default function Home() {
     return () => off(submissionsRef, 'value', unsubscribe);
   }, [rtdb]);
 
+  // Saved Games Listener
+  useEffect(() => {
+    if (!rtdb || !loggedInUser) return;
+    const savedRef = ref(rtdb, `users/${loggedInUser.username}/savedGames`);
+    const unsubscribe = onValue(savedRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        setSavedGames(Object.values(data));
+      } else {
+        setSavedGames([]);
+      }
+    });
+    return () => off(savedRef, 'value', unsubscribe);
+  }, [rtdb, loggedInUser?.username]);
+
   // Derived filtered lists
   const approvedSubmissions = useMemo(() => 
     allSubmissions.filter(s => s.status === 'approved'), 
@@ -109,7 +127,9 @@ export default function Home() {
       views: sub.views || '0',
       played: sub.played || '0',
       likes: sub.likes || 0,
-      dislikes: sub.dislikes || 0
+      dislikes: sub.dislikes || 0,
+      developerInfo: sub.developerInfo,
+      profileImageUrl: sub.profileImageUrl
     }));
     return [...GAMES_LIBRARY, ...dynamicGames];
   }, [approvedSubmissions]);
@@ -184,7 +204,6 @@ export default function Home() {
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    toast({ title: "Data Captured", description: "Text copied to console clipboard." });
   };
 
   const handleLogin = async () => {
@@ -226,6 +245,7 @@ export default function Home() {
     localStorage.removeItem('pulse_session');
     setShowNewProject(false);
     setShowUserAnalytics(false);
+    setShowSavedGames(false);
     setIsAdminMode(false);
     setAppToDelete(null);
     setEditingApp(null);
@@ -246,7 +266,6 @@ export default function Home() {
         setLoggedInUser(updatedUser);
         localStorage.setItem('pulse_session', JSON.stringify(updatedUser));
         
-        // Update views/plays for dynamic apps
         const submission = allSubmissions.find(s => s.id === game.id);
         if (submission) {
           const currentPlayed = parseInt(submission.played || "0");
@@ -308,7 +327,7 @@ export default function Home() {
     if (!rtdb || !appToDelete) return;
     try {
       await remove(ref(rtdb, `submissions/${appToDelete.id}`));
-      toast({ title: "App Terminated", description: "Application removed from system permanently." });
+      toast({ title: "App Deleted", description: "Application removed from system permanently." });
       setAppToDelete(null);
       setDeleteConfirmText('');
     } catch (e) {
@@ -472,6 +491,33 @@ export default function Home() {
     );
   }
 
+  if (showSavedGames) {
+    return (
+      <div className="min-h-screen bg-background animate-fade-in">
+        <header className="sticky top-0 z-30 bg-background/95 backdrop-blur-xl border-b border-border py-4 px-6 flex items-center justify-between">
+          <Button variant="ghost" size="sm" onClick={() => setShowSavedGames(false)} className="rounded-xl gap-2 font-black uppercase tracking-widest text-[10px]">
+            <ArrowLeft className="w-4 h-4" /> Back to Console
+          </Button>
+          <Bookmark className="w-5 h-5 text-primary" />
+        </header>
+        <main className="max-w-2xl mx-auto p-6 space-y-8 pb-32">
+          <h1 className="text-3xl font-black uppercase italic tracking-tighter">Saved Protocols</h1>
+          <div className="grid gap-6">
+            {savedGames.length === 0 ? (
+              <div className="p-10 border border-dashed border-border rounded-3xl text-center">
+                <p className="text-muted-foreground font-bold uppercase tracking-widest text-xs italic">No Saved Engines // Bookmark your favorites</p>
+              </div>
+            ) : (
+              savedGames.map((game) => (
+                <GameCard key={game.id} game={game} onLaunch={handleLaunchGame} user={loggedInUser} />
+              ))
+            )}
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   if (showUserAnalytics) {
     return (
       <div className="min-h-screen bg-background animate-fade-in">
@@ -576,7 +622,7 @@ export default function Home() {
         <ShadDialog open={!!appToDelete} onOpenChange={(open) => { if(!open) { setAppToDelete(null); setDeleteConfirmText(''); } }}>
           <ShadDialogContent className="rounded-3xl border-destructive/30 bg-card/95 backdrop-blur-xl max-w-sm">
             <ShadDialogHeader>
-              <ShadDialogTitle className="text-xl font-black uppercase italic tracking-tighter text-destructive">Terminate Application?</ShadDialogTitle>
+              <ShadDialogTitle className="text-xl font-black uppercase italic tracking-tighter text-destructive">Delete Application?</ShadDialogTitle>
             </ShadDialogHeader>
             <div className="space-y-4 py-4 text-center">
               <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest leading-relaxed">
@@ -598,7 +644,7 @@ export default function Home() {
                 onClick={handleConfirmDelete}
                 className="w-full font-black uppercase tracking-widest rounded-xl h-12 shadow-lg shadow-destructive/20"
               >
-                Confirm Termination
+                Confirm Deletion
               </Button>
             </ShadDialogFooter>
           </ShadDialogContent>
@@ -695,6 +741,13 @@ export default function Home() {
                   </div>
                   <div className="space-y-4">
                     <Button 
+                      onClick={() => setShowSavedGames(true)} 
+                      variant="outline"
+                      className="w-full h-14 bg-secondary/20 hover:bg-primary/10 text-foreground rounded-2xl border-border text-[10px] font-black uppercase tracking-widest"
+                    >
+                      <Bookmark className="w-4 h-4 mr-2" /> Saved Protocols
+                    </Button>
+                    <Button 
                       onClick={() => setShowNewProject(true)} 
                       className="w-full h-14 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl border-none text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20"
                     >
@@ -727,7 +780,7 @@ export default function Home() {
         <section className="pb-20 space-y-6 pt-6">
           <div className="grid gap-6">
             {displayGames.map((game) => (
-              <GameCard key={game.id} game={game} onLaunch={handleLaunchGame} />
+              <GameCard key={game.id} game={game} onLaunch={handleLaunchGame} user={loggedInUser} />
             ))}
           </div>
         </section>
