@@ -83,48 +83,48 @@ export function GameCard({ game, onLaunch }: GameCardProps) {
         </div>
       </div>
 
-      {/* Second Line: Large Interaction Buttons */}
+      {/* Second Line: Large "Post-Style" Interaction Buttons */}
       <div className="flex items-center">
         <div className="flex bg-secondary/20 rounded-full p-1 border border-border/40 w-full sm:w-auto">
           <button 
             onClick={handleLike}
             className={cn(
-              "flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2 rounded-full font-black text-xs uppercase transition-all active:scale-95",
+              "flex-1 sm:flex-none flex items-center justify-center gap-3 px-8 py-3 rounded-full font-black text-sm uppercase transition-all active:scale-95",
               userVote === 'like' 
                 ? "bg-primary text-white shadow-lg shadow-primary/20" 
                 : "text-muted-foreground hover:bg-primary/10 hover:text-primary"
             )}
           >
-            <ThumbsUp className={cn("w-4 h-4", userVote === 'like' && "fill-current")} />
+            <ThumbsUp className={cn("w-5 h-5", userVote === 'like' && "fill-current")} />
             {likes.toLocaleString()}
           </button>
-          <div className="w-px h-4 bg-border/30 self-center mx-1" />
+          <div className="w-px h-6 bg-border/30 self-center mx-1" />
           <button 
             onClick={handleDislike}
             className={cn(
-              "flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2 rounded-full font-black text-xs uppercase transition-all active:scale-95",
+              "flex-1 sm:flex-none flex items-center justify-center gap-3 px-8 py-3 rounded-full font-black text-sm uppercase transition-all active:scale-95",
               userVote === 'dislike' 
                 ? "bg-destructive text-white shadow-lg shadow-destructive/20" 
                 : "text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
             )}
           >
-            <ThumbsDown className={cn("w-4 h-4", userVote === 'dislike' && "fill-current")} />
+            <ThumbsDown className={cn("w-5 h-5", userVote === 'dislike' && "fill-current")} />
             {dislikes.toLocaleString()}
           </button>
         </div>
       </div>
 
-      {/* Third Line: Distinct Play Button */}
+      {/* Third Line: Distinct Play Button with Loading Animation */}
       <Button 
         disabled={isLoading}
         onClick={handlePlayClick}
-        className="w-full bg-accent hover:bg-accent/90 text-accent-foreground font-black text-xs uppercase tracking-[0.2em] h-11 rounded-lg shadow-lg shadow-accent/10 transition-all active:scale-95"
+        className="w-full bg-accent hover:bg-accent/90 text-accent-foreground font-black text-xs uppercase tracking-[0.2em] h-12 rounded-lg shadow-lg shadow-accent/10 transition-all active:scale-95"
       >
         {isLoading ? (
           <div className="flex gap-1.5 items-center justify-center">
-            <div className="w-1.5 h-1.5 bg-accent-foreground rounded-full animate-bounce [animation-delay:-0.3s]" />
-            <div className="w-1.5 h-1.5 bg-accent-foreground rounded-full animate-bounce [animation-delay:-0.15s]" />
-            <div className="w-1.5 h-1.5 bg-accent-foreground rounded-full animate-bounce" />
+            <div className="w-2 h-2 bg-accent-foreground rounded-full animate-bounce [animation-delay:-0.3s]" />
+            <div className="w-2 h-2 bg-accent-foreground rounded-full animate-bounce [animation-delay:-0.15s]" />
+            <div className="w-2 h-2 bg-accent-foreground rounded-full animate-bounce" />
           </div>
         ) : (
           "Play"
