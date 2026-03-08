@@ -29,34 +29,54 @@ interface GameCardProps {
 }
 
 export function GameCard({ game, onLaunch, user }: GameCardProps) {
-  const [likes, setLikes] = useState(game.likes);
-  const [dislikes, setDislikes] = useState(game.dislikes);
+  const [likes, setLikes] = useState(game.likes || 0);
+  const [dislikes, setDislikes] = useState(game.dislikes || 0);
   const [userVote, setUserVote] = useState<'like' | 'dislike' | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const rtdb = useRTDB();
 
+  const syncVotes = (newL: number, newD: number) => {
+    if (!rtdb) return;
+    const gameRef = ref(rtdb, `submissions/${game.id}`);
+    update(gameRef, { likes: newL, dislikes: newD });
+  };
+
   const handleLike = (e: React.MouseEvent) => {
     e.stopPropagation();
+    let newL = likes;
+    let newD = dislikes;
+
     if (userVote === 'like') {
-      setLikes(prev => prev - 1);
+      newL -= 1;
       setUserVote(null);
     } else {
-      setLikes(prev => prev + 1);
-      if (userVote === 'dislike') setDislikes(prev => prev - 1);
+      newL += 1;
+      if (userVote === 'dislike') newD -= 1;
       setUserVote('like');
     }
+    
+    setLikes(newL);
+    setDislikes(newD);
+    syncVotes(newL, newD);
   };
 
   const handleDislike = (e: React.MouseEvent) => {
     e.stopPropagation();
+    let newL = likes;
+    let newD = dislikes;
+
     if (userVote === 'dislike') {
-      setDislikes(prev => prev - 1);
+      newD -= 1;
       setUserVote(null);
     } else {
-      setDislikes(prev => prev + 1);
-      if (userVote === 'like') setLikes(prev => prev - 1);
+      newD += 1;
+      if (userVote === 'like') newL -= 1;
       setUserVote('dislike');
     }
+    
+    setLikes(newL);
+    setDislikes(newD);
+    syncVotes(newL, newD);
   };
 
   const handleShare = () => {
@@ -66,7 +86,7 @@ export function GameCard({ game, onLaunch, user }: GameCardProps) {
   const handleSave = async () => {
     if (!rtdb || !user) return;
     const saveRef = ref(rtdb, `users/${user.username}/savedGames/${game.id}`);
-    await update(saveRef, game);
+    update(saveRef, game);
   };
 
   const handlePlayClick = () => {
@@ -98,38 +118,40 @@ export function GameCard({ game, onLaunch, user }: GameCardProps) {
               {game.title}
             </h3>
             <div className="flex items-center gap-1">
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full bg-secondary/20 hover:bg-accent/20 hover:text-accent">
-                    <Info className="w-3.5 h-3.5" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-64 rounded-2xl bg-card/95 backdrop-blur-xl border-border p-4">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-10 w-10 border border-primary/30">
-                      <AvatarImage src={game.profileImageUrl} />
-                      <AvatarFallback className="bg-secondary text-primary font-black text-xs uppercase">DEV</AvatarFallback>
-                    </Avatar>
-                    <div className="overflow-hidden">
-                      <p className="text-[8px] text-muted-foreground uppercase font-black tracking-widest italic mb-0.5">Architect</p>
-                      <p className="text-sm font-black italic uppercase text-foreground leading-none truncate">{game.developerInfo || 'Unknown dev'}</p>
-                    </div>
-                  </div>
-                </PopoverContent>
-              </Popover>
-
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full bg-secondary/20">
-                    <MoreVertical className="w-3.5 h-3.5" />
+                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full bg-secondary/20 hover:bg-primary/20 transition-colors">
+                    <MoreVertical className="w-4 h-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="rounded-xl bg-card border-border min-w-[140px]">
+                <DropdownMenuContent align="end" className="rounded-xl bg-card border-border min-w-[150px]">
                   <DropdownMenuItem onClick={handleShare} className="font-black uppercase italic tracking-widest text-[10px] gap-3 py-2.5">
-                    <Share2 className="w-3.5 h-3.5" /> Share Engine
+                    <Share2 className="w-3.5 h-3.5" /> Share
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleSave} className="font-black uppercase italic tracking-widest text-[10px] gap-3 py-2.5 text-primary">
-                    <Bookmark className="w-3.5 h-3.5" /> Save Protocol
+                    <Bookmark className="w-3.5 h-3.5" /> Save
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <button className="w-full flex items-center font-black uppercase italic tracking-widest text-[10px] gap-3 py-2.5 px-2 hover:bg-accent/10 rounded-sm">
+                          <User className="w-3.5 h-3.5" /> About Developer
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent side="left" className="w-64 rounded-2xl bg-card/95 backdrop-blur-xl border-border p-4 shadow-2xl z-50">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-12 w-12 border border-primary/30">
+                            <AvatarImage src={game.profileImageUrl} />
+                            <AvatarFallback className="bg-secondary text-primary font-black text-xs uppercase">DEV</AvatarFallback>
+                          </Avatar>
+                          <div className="overflow-hidden">
+                            <p className="text-[8px] text-muted-foreground uppercase font-black tracking-widest italic mb-0.5">Architect</p>
+                            <p className="text-sm font-black italic uppercase text-foreground leading-none truncate mb-1">{game.developerInfo || 'Unknown'}</p>
+                            <p className="text-[9px] text-muted-foreground font-bold leading-tight">{game.developerBio || 'System Authorized'}</p>
+                          </div>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
