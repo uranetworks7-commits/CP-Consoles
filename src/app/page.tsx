@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { GAMES_LIBRARY, Game } from '@/lib/games';
 import { GameCard } from '@/components/GameCard';
 import { GameLaunchPad } from '@/components/GameLaunchPad';
@@ -8,7 +9,7 @@ import { MonitorPlay, User, PlusCircle, LogIn, LogOut, Terminal, ShieldAlert, Cp
 import { Button } from '@/components/ui/button';
 import { useAuth, useUser, useRTDB } from '@/firebase';
 import { signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
-import { ref, get, set, onValue } from 'firebase/database';
+import { ref, set, onValue } from 'firebase/database';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -41,7 +42,6 @@ export default function Home() {
   const { user, loading: authLoading } = useUser();
   const { toast } = useToast();
 
-  // Listen for user data in Realtime Database
   useEffect(() => {
     if (!rtdb || !user) {
       setDbLoading(false);
@@ -88,7 +88,7 @@ export default function Home() {
       const userRef = ref(rtdb, `users/${user.uid}`);
       await set(userRef, {
         uid: user.uid,
-        username: usernameInput.trim(),
+        username: usernameInput.trim().toUpperCase(),
         email: user.email,
         photoURL: user.photoURL,
         createdAt: new Date().toISOString(),
@@ -108,13 +108,12 @@ export default function Home() {
     }
   };
 
-  // 1. Loading State
   if (authLoading || (user && dbLoading)) {
     return (
       <div className="min-h-screen bg-[#0a0c10] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 rounded-xl bg-primary animate-pulse flex items-center justify-center">
-            <Cpu className="text-white w-6 h-6 animate-spin duration-3000" />
+            <Cpu className="text-white w-6 h-6 animate-spin duration-[3000ms]" />
           </div>
           <p className="text-[10px] font-mono text-primary uppercase tracking-[0.3em] animate-pulse">Syncing_Modules...</p>
         </div>
@@ -122,10 +121,9 @@ export default function Home() {
     );
   }
 
-  // 2. Unauthenticated Gate
   if (!user) {
     return (
-      <div className="min-h-screen bg-[#0a0c10] flex flex-col items-center justify-center p-6 text-center space-y-8">
+      <div className="min-h-screen bg-[#0a0c10] flex flex-col items-center justify-center p-6 text-center space-y-8 animate-fade-in">
         <div className="space-y-2">
           <div className="w-20 h-20 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto shadow-2xl shadow-primary/20 mb-6">
             <ShieldAlert className="text-primary w-10 h-10" />
@@ -147,43 +145,44 @@ export default function Home() {
     );
   }
 
-  // 3. Username Registration Gate
-  const showRegistration = user && !userData;
+  const showRegistration = user && !userData && !dbLoading;
 
   return (
     <div className="min-h-screen bg-[#0a0c10] text-foreground selection:bg-primary selection:text-primary-foreground">
       <main className="max-w-2xl mx-auto px-4 sm:px-6 py-0 space-y-4">
-        <header className="sticky top-0 z-30 bg-[#0a0c10]/95 backdrop-blur-md border-b border-border/30 py-3">
-          <div className="flex flex-col gap-3">
+        <header className="sticky top-0 z-30 bg-[#0a0c10]/95 backdrop-blur-md border-b border-border/30 py-4">
+          <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
-                  <MonitorPlay className="text-white w-5 h-5" />
+                <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
+                  <MonitorPlay className="text-white w-6 h-6" />
                 </div>
-                <div>
-                  <h1 className="text-xl sm:text-2xl font-black tracking-tighter uppercase italic text-foreground leading-none">
-                    Connect Pulse Consoles
-                  </h1>
-                  {userData?.username && (
-                    <p className="text-[8px] font-mono text-accent uppercase tracking-[0.2em] mt-0.5 flex items-center gap-1">
-                      <Terminal className="w-2.5 h-2.5" />
-                      Active_Operator: {userData.username}
-                    </p>
-                  )}
-                </div>
+                <h1 className="text-2xl font-black tracking-tighter uppercase italic text-foreground leading-none">
+                  Connect Pulse Consoles
+                </h1>
               </div>
 
-              <div className="flex items-center gap-2">
+              <Button 
+                onClick={() => toast({ title: "Access Locked", description: "Admin level required for new builds." })}
+                className="bg-accent hover:bg-accent/90 text-accent-foreground rounded-full px-4 h-9 font-black uppercase text-[10px] tracking-widest gap-2 shadow-lg shadow-accent/10"
+              >
+                <PlusCircle className="w-4 h-4" />
+                New Project
+              </Button>
+            </div>
+
+            <div className="flex items-center justify-between bg-card/10 p-2 rounded-xl border border-border/20">
+              <div className="flex items-center gap-3">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="relative h-8 w-8 rounded-full p-0">
-                      <Avatar className="h-8 w-8 border border-primary/20">
+                    <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0 overflow-hidden border-2 border-primary/20 hover:border-primary/50 transition-colors">
+                      <Avatar className="h-full w-full">
                         <AvatarImage src={user.photoURL || ''} alt={userData?.username || 'User'} />
-                        <AvatarFallback><User size={14}/></AvatarFallback>
+                        <AvatarFallback><User size={18}/></AvatarFallback>
                       </Avatar>
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-56 bg-card border-border/40" align="end" forceMount>
+                  <DropdownMenuContent className="w-56 bg-card border-border/40" align="start" forceMount>
                     <DropdownMenuLabel className="font-normal">
                       <div className="flex flex-col space-y-1">
                         <p className="text-sm font-medium leading-none text-foreground">{userData?.username || user.displayName}</p>
@@ -197,24 +196,27 @@ export default function Home() {
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
+                
+                <div>
+                  <p className="text-[9px] font-mono text-accent uppercase tracking-[0.2em] flex items-center gap-1.5">
+                    <Terminal className="w-3 h-3" />
+                    Operator_{userData?.username || 'UNIDENTIFIED'}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground/60 font-medium">Session Active // Nexus_Net</p>
+                </div>
               </div>
-            </div>
 
-            <div className="flex items-center gap-3">
-              <Button 
-                onClick={() => toast({ title: "Access Locked", description: "Admin level required for new builds." })}
-                className="bg-accent hover:bg-accent/90 text-accent-foreground rounded-full px-4 h-8 font-black uppercase text-[9px] tracking-widest gap-2 shadow-lg shadow-accent/10"
-              >
-                <PlusCircle className="w-3.5 h-3.5" />
-                New Project
-              </Button>
-              <div className="flex-1 h-px bg-border/20" />
+              <div className="hidden sm:flex gap-1.5 px-3">
+                <div className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-pulse" />
+                <div className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-pulse [animation-delay:0.2s]" />
+                <div className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-pulse [animation-delay:0.4s]" />
+              </div>
             </div>
           </div>
         </header>
 
-        <section className="pb-8">
-          <div className="flex flex-col gap-4">
+        <section className="pb-12 space-y-4">
+          <div className="flex flex-col gap-5">
             {GAMES_LIBRARY.map((game) => (
               <GameCard 
                 key={game.id} 
@@ -225,17 +227,12 @@ export default function Home() {
           </div>
         </section>
 
-        <footer className="py-6 flex justify-between items-center text-muted-foreground/30 border-t border-border/10">
-          <p className="text-[9px] font-mono uppercase tracking-widest">NEXUS_OS_CORE v4.0</p>
-          <div className="flex gap-3">
-            <div className="w-1 h-1 bg-primary rounded-full" />
-            <div className="w-1 h-1 bg-primary rounded-full" />
-            <div className="w-1 h-1 bg-primary rounded-full" />
-          </div>
+        <footer className="py-8 flex justify-between items-center text-muted-foreground/20 border-t border-border/10">
+          <p className="text-[9px] font-mono uppercase tracking-widest">NEXUS_OS_CORE v4.0.2</p>
+          <p className="text-[9px] font-mono uppercase tracking-widest">© Pulse_Consoles_Inc</p>
         </footer>
       </main>
 
-      {/* Profile Setup Dialog */}
       <Dialog open={showRegistration}>
         <DialogContent className="sm:max-w-md bg-card border-border/50 text-foreground [&>button]:hidden">
           <DialogHeader>
