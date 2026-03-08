@@ -95,6 +95,8 @@ export default function Home() {
       let errorMsg = error.message;
       if (error.code === 'auth/unauthorized-domain') {
         errorMsg = "Domain blocked. Add this URL to Firebase Auth -> Authorized Domains.";
+      } else if (error.code === 'auth/configuration-not-found') {
+        errorMsg = "Firebase Auth not enabled. Check Google Auth provider in Firebase Console.";
       }
       
       toast({
