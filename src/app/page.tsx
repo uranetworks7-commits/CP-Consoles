@@ -8,7 +8,7 @@ import { GameLaunchPad } from '@/components/GameLaunchPad';
 import { MonitorPlay, LogIn, LogOut, Cpu, Gamepad2, PlusCircle, BarChart3, Trophy, History, Settings, Sun, Moon, ArrowLeft, Globe, Rocket, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useRTDB, useFirestore, useCollection } from '@/firebase';
-import { ref, get, child } from 'firebase/database';
+import { ref, get, child, update } from 'firebase/database';
 import { collection, addDoc, query, where, serverTimestamp } from 'firebase/firestore';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
@@ -139,6 +139,37 @@ export default function Home() {
       title: "Session Terminated",
       description: "Successfully logged out.",
     });
+  };
+
+  const handleLaunchGame = async (game: Game) => {
+    setActiveGame(game);
+    if (loggedInUser && rtdb) {
+      const userRef = ref(rtdb, `users/${loggedInUser.username}`);
+      const playData = {
+        id: game.id,
+        title: game.title,
+        timestamp: new Date().toISOString()
+      };
+      
+      // Calculate new XP (gain 50 XP per play session for demo)
+      const currentXp = parseInt((loggedInUser.xp || "12,450").toString().replace(/,/g, ''));
+      const newXp = (currentXp + 50).toLocaleString();
+
+      const updates: any = {
+        recentPlayed: playData,
+        xp: newXp
+      };
+
+      try {
+        await update(userRef, updates);
+        // Sync local state
+        const updatedUser = { ...loggedInUser, ...updates };
+        setLoggedInUser(updatedUser);
+        localStorage.setItem('pulse_session', JSON.stringify(updatedUser));
+      } catch (err) {
+        console.error("Failed to sync play session to cloud:", err);
+      }
+    }
   };
 
   const handlePublish = async () => {
@@ -411,7 +442,7 @@ export default function Home() {
                         <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">XP Points</p>
                       </div>
                       <p className="text-2xl font-black italic tracking-tighter text-foreground leading-none">
-                        {loggedInUser.xp || '12,450'}
+                        {loggedInUser.xp || '0'}
                       </p>
                     </div>
                     
@@ -481,8 +512,14 @@ export default function Home() {
                           <MonitorPlay className="w-6 h-6 text-primary" />
                         </div>
                         <div>
-                          <p className="text-sm font-black italic uppercase tracking-tighter">CS: Chaos Squad</p>
-                          <p className="text-[10px] text-muted-foreground uppercase">Played 2 hours ago</p>
+                          <p className="text-sm font-black italic uppercase tracking-tighter">
+                            {loggedInUser.recentPlayed?.title || 'No Activity'}
+                          </p>
+                          <p className="text-[10px] text-muted-foreground uppercase">
+                            {loggedInUser.recentPlayed?.timestamp 
+                              ? `Played ${new Date(loggedInUser.recentPlayed.timestamp).toLocaleTimeString()}` 
+                              : 'System Ready'}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -508,7 +545,7 @@ export default function Home() {
               <GameCard 
                 key={game.id} 
                 game={game} 
-                onLaunch={(game) => setActiveGame(game)} 
+                onLaunch={handleLaunchGame} 
               />
             ))}
           </div>
