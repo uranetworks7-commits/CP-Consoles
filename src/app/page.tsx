@@ -54,7 +54,7 @@ export default function Home() {
       toast({
         variant: "destructive",
         title: "Identification Required",
-        description: "Enter your Operator Handle to verify credentials.",
+        description: "Enter your username to verify credentials.",
       });
       return;
     }
@@ -67,7 +67,6 @@ export default function Home() {
       
       if (snapshot.exists()) {
         const userData = snapshot.val();
-        // If the database node exists, we consider it a successful login
         const userProfile = {
           username: username,
           ...(typeof userData === 'object' ? userData : {})
@@ -78,13 +77,13 @@ export default function Home() {
         
         toast({
           title: "Access Granted",
-          description: `Credentials verified. Welcome, ${username}.`,
+          description: `Welcome back, ${username}.`,
         });
       } else {
         toast({
           variant: "destructive",
           title: "Access Denied",
-          description: "Operator Handle not found in system records.",
+          description: "Username not found in system records.",
         });
       }
     } catch (error: any) {
@@ -104,7 +103,7 @@ export default function Home() {
     localStorage.removeItem('pulse_session');
     toast({
       title: "Session Terminated",
-      description: "Neural link disconnected.",
+      description: "Successfully logged out.",
     });
   };
 
@@ -131,7 +130,7 @@ export default function Home() {
               </div>
               <div className="space-y-1">
                 <h1 className="text-3xl font-black uppercase italic tracking-tighter text-foreground leading-none">
-                  Pulse Console
+                  Login
                 </h1>
                 <p className="text-muted-foreground/60 text-[9px] font-mono uppercase tracking-[0.4em]">
                   Realtime_Database_Verification
@@ -142,10 +141,10 @@ export default function Home() {
             <div className="space-y-4">
               <div className="space-y-2">
                 <label className="text-[9px] font-black uppercase tracking-[0.2em] text-primary/80 ml-1">
-                  Operator Handle (Case Sensitive)
+                  Enter Username
                 </label>
                 <Input
-                  placeholder="Enter Username"
+                  placeholder="Username"
                   value={usernameInput}
                   onChange={(e) => setUsernameInput(e.target.value)}
                   className="h-12 bg-card/10 border-border/20 focus:border-primary/50 focus:ring-primary/20 font-mono rounded-xl px-5 text-sm tracking-widest text-foreground"
@@ -195,10 +194,10 @@ export default function Home() {
                 </div>
                 <div>
                   <h1 className="text-xl font-black tracking-tighter uppercase italic text-foreground leading-none">
-                    Pulse Consoles
+                    Connect Plus Console
                   </h1>
                   <p className="text-[8px] font-mono text-primary/60 tracking-[0.2em] mt-1 uppercase">
-                    Operator_{loggedInUser.username}
+                    Operator: {loggedInUser.username}
                   </p>
                 </div>
               </div>
@@ -229,12 +228,12 @@ export default function Home() {
                       <p className="text-[10px] font-black italic tracking-tighter text-foreground">
                         {loggedInUser.username}
                       </p>
-                      <p className="text-[8px] font-mono text-muted-foreground/60">Pulse_Verified_Operator</p>
+                      <p className="text-[8px] font-mono text-muted-foreground/60">Console_Verified_User</p>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator className="bg-border/10" />
                     <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer font-bold uppercase text-[9px] tracking-widest p-2.5">
                       <LogOut className="mr-2 h-3.5 w-3.5" />
-                      Terminate Session
+                      Logout
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -247,7 +246,7 @@ export default function Home() {
                     </p>
                   </div>
                   <p className="text-[9px] text-foreground font-black uppercase italic tracking-tighter">
-                    Database Verified Console
+                    Verified Console Access
                   </p>
                 </div>
               </div>
@@ -269,7 +268,7 @@ export default function Home() {
 
         <footer className="py-8 flex flex-col items-center gap-3 text-muted-foreground/10 border-t border-border/5">
           <p className="text-[7px] font-mono uppercase tracking-[0.3em]">Core_v5.0.0 // RTDB_SYNC_ACTIVE</p>
-          <p className="text-[7px] font-mono uppercase tracking-widest">© Pulse_Consoles_Systems</p>
+          <p className="text-[7px] font-mono uppercase tracking-widest">© Connect_Plus_Consoles</p>
         </footer>
       </main>
 
