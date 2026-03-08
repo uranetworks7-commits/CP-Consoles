@@ -5,11 +5,10 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { GAMES_LIBRARY, Game } from '@/lib/games';
 import { GameCard } from '@/components/GameCard';
 import { GameLaunchPad } from '@/components/GameLaunchPad';
-import { MonitorPlay, LogIn, LogOut, Cpu, Gamepad2, PlusCircle, BarChart3, Trophy, History, Settings, Sun, Moon, ArrowLeft, Globe, Rocket, ShieldCheck, Key, CheckCircle2, XCircle } from 'lucide-react';
+import { MonitorPlay, LogOut, Cpu, Gamepad2, PlusCircle, History, Settings, Sun, Moon, ArrowLeft, Rocket, Key, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useFirestore, useCollection, useRTDB } from '@/firebase';
-import { ref, get, child, update } from 'firebase/database';
-import { collection, addDoc, query, where, serverTimestamp, doc, updateDoc } from 'firebase/firestore';
+import { useRTDB } from '@/firebase';
+import { ref, get, child, update, push, onValue, off } from 'firebase/database';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
@@ -21,13 +20,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/Dialog";
 import {
   Dialog as ShadDialog,
   DialogContent as ShadDialogContent,
@@ -46,6 +38,9 @@ export default function Home() {
   const [showNewProject, setShowNewProject] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
 
+  // RTDB Submissions State
+  const [allSubmissions, setAllSubmissions] = useState<any[]>([]);
+
   // Admin State
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
   const [showAdminKeyDialog, setShowAdminKeyDialog] = useState(false);
@@ -63,26 +58,43 @@ export default function Home() {
   });
   
   const rtdb = useRTDB();
-  const db = useFirestore();
   const { toast } = useToast();
 
-  // Fetch Approved Submissions to display on main grid
-  const approvedQuery = useMemo(() => {
-    if (!db) return null;
-    return query(collection(db, 'submissions'), where('status', '==', 'approved'));
-  }, [db]);
-  const { data: approvedSubmissions } = useCollection(approvedQuery);
+  // Unified RTDB Listener for Submissions
+  useEffect(() => {
+    if (!rtdb) return;
+    const submissionsRef = ref(rtdb, 'submissions');
+    const unsubscribe = onValue(submissionsRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const list = Object.entries(data).map(([id, val]: [string, any]) => ({
+          id,
+          ...val
+        }));
+        setAllSubmissions(list);
+      } else {
+        setAllSubmissions([]);
+      }
+    });
+    return () => off(submissionsRef, 'value', unsubscribe);
+  }, [rtdb]);
 
-  // Fetch Pending Submissions for Admin Mode
-  const pendingQuery = useMemo(() => {
-    if (!db || !isAdminMode) return null;
-    return query(collection(db, 'submissions'), where('status', '==', 'under_review'));
-  }, [db, isAdminMode]);
-  const { data: pendingSubmissions } = useCollection(pendingQuery);
+  // Derived filtered lists
+  const approvedSubmissions = useMemo(() => 
+    allSubmissions.filter(s => s.status === 'approved'), 
+  [allSubmissions]);
+
+  const pendingSubmissions = useMemo(() => 
+    allSubmissions.filter(s => s.status === 'under_review'), 
+  [allSubmissions]);
+
+  const userSubmissions = useMemo(() => 
+    allSubmissions.filter(s => s.userId === loggedInUser?.username), 
+  [allSubmissions, loggedInUser?.username]);
 
   // Merged games list (Static + Approved Dynamic)
   const displayGames = useMemo(() => {
-    const dynamicGames = (approvedSubmissions || []).map(sub => ({
+    const dynamicGames = approvedSubmissions.map(sub => ({
       id: sub.id,
       title: sub.gameName,
       description: sub.developerInfo,
@@ -97,13 +109,6 @@ export default function Home() {
     }));
     return [...GAMES_LIBRARY, ...dynamicGames];
   }, [approvedSubmissions]);
-
-  // Fetch User's Submissions for Analytics
-  const userSubmissionsQuery = useMemo(() => {
-    if (!db || !loggedInUser?.username) return null;
-    return query(collection(db, 'submissions'), where('userId', '==', loggedInUser.username));
-  }, [db, loggedInUser?.username]);
-  const { data: userSubmissions } = useCollection(userSubmissionsQuery);
 
   useEffect(() => {
     const savedUser = localStorage.getItem('pulse_session');
@@ -125,15 +130,11 @@ export default function Home() {
     document.documentElement.classList.toggle('light', newTheme === 'light');
     
     if (loggedInUser && rtdb) {
-      try {
-        const userRef = ref(rtdb, `users/${loggedInUser.username}`);
-        await update(userRef, { theme: newTheme });
-        const updatedUser = { ...loggedInUser, theme: newTheme };
-        setLoggedInUser(updatedUser);
-        localStorage.setItem('pulse_session', JSON.stringify(updatedUser));
-      } catch (err) {
-        console.error("Failed to sync theme:", err);
-      }
+      const userRef = ref(rtdb, `users/${loggedInUser.username}`);
+      await update(userRef, { theme: newTheme });
+      const updatedUser = { ...loggedInUser, theme: newTheme };
+      setLoggedInUser(updatedUser);
+      localStorage.setItem('pulse_session', JSON.stringify(updatedUser));
     }
   };
 
@@ -141,7 +142,7 @@ export default function Home() {
     longPressTimer.current = setTimeout(() => {
       setShowAdminKeyDialog(true);
       longPressTimer.current = null;
-    }, 2000); // 2 seconds long press
+    }, 2000);
   };
 
   const endLongPress = () => {
@@ -163,9 +164,9 @@ export default function Home() {
   };
 
   const handleApproveApp = async (id: string) => {
-    if (!db) return;
+    if (!rtdb) return;
     try {
-      await updateDoc(doc(db, 'submissions', id), { status: 'approved' });
+      await update(ref(rtdb, `submissions/${id}`), { status: 'approved' });
       toast({ title: "App Approved", description: "Application is now live on the console." });
     } catch (e) {
       toast({ variant: "destructive", title: "Error", description: "Failed to update record." });
@@ -234,7 +235,7 @@ export default function Home() {
   };
 
   const handlePublish = async () => {
-    if (!db || !loggedInUser) return;
+    if (!rtdb || !loggedInUser) return;
     if (!formData.gameName || !formData.gameUrl) {
       toast({ variant: "destructive", title: "Missing Parameters", description: "Game name and URL are mandatory." });
       return;
@@ -242,11 +243,12 @@ export default function Home() {
 
     setIsPublishing(true);
     try {
-      await addDoc(collection(db, 'submissions'), {
+      const newSubRef = push(ref(rtdb, 'submissions'));
+      await update(newSubRef, {
         ...formData,
         userId: loggedInUser.username,
         status: 'under_review',
-        createdAt: serverTimestamp()
+        createdAt: new Date().toISOString()
       });
       toast({ title: "App Published", description: "Your App under Review." });
       setFormData({ profileImageUrl: '', gameName: '', gameType: '', gameUrl: '', thumbnailUrl: '', developerInfo: '' });
@@ -356,12 +358,12 @@ export default function Home() {
           <h1 className="text-3xl font-black uppercase italic tracking-tighter">New Application</h1>
           <div className="grid gap-6">
             <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">Profile Identification URL</Label>
-              <Input placeholder="https://..." value={formData.profileImageUrl} onChange={(e) => setFormData({...formData, profileImageUrl: e.target.value})} className="rounded-xl bg-secondary/10" />
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">Profile Identification URL (Catbox.moe expected)</Label>
+              <Input placeholder="https://files.catbox.moe/..." value={formData.profileImageUrl} onChange={(e) => setFormData({...formData, profileImageUrl: e.target.value})} className="rounded-xl bg-secondary/10" />
             </div>
             <div className="grid grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">Game Designation (Max 12)</Label>
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">Game Name (Max 12)</Label>
                 <Input placeholder="App Name" maxLength={12} value={formData.gameName} onChange={(e) => setFormData({...formData, gameName: e.target.value})} className="rounded-xl bg-secondary/10" />
               </div>
               <div className="space-y-2">
@@ -374,12 +376,12 @@ export default function Home() {
               <Input placeholder="https://app-source.com" value={formData.gameUrl} onChange={(e) => setFormData({...formData, gameUrl: e.target.value})} className="rounded-xl bg-secondary/10" />
             </div>
             <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">Visual Thumbnail URL</Label>
-              <Input placeholder="https://thumbnail-proxy.png" value={formData.thumbnailUrl} onChange={(e) => setFormData({...formData, thumbnailUrl: e.target.value})} className="rounded-xl bg-secondary/10" />
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">Visual Thumbnail URL (Catbox.moe expected)</Label>
+              <Input placeholder="https://files.catbox.moe/..." value={formData.thumbnailUrl} onChange={(e) => setFormData({...formData, thumbnailUrl: e.target.value})} className="rounded-xl bg-secondary/10" />
             </div>
             <div className="space-y-2">
               <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">Developer Bio (Max 20)</Label>
-              <Input placeholder="Brief ident..." maxLength={20} value={formData.developerInfo} onChange={(e) => setFormData({...formData, developerInfo: e.target.value})} className="rounded-xl bg-secondary/10" />
+              <Input placeholder="Brief identifier..." maxLength={20} value={formData.developerInfo} onChange={(e) => setFormData({...formData, developerInfo: e.target.value})} className="rounded-xl bg-secondary/10" />
             </div>
           </div>
           <Button onClick={handlePublish} disabled={isPublishing || !formData.gameName || !formData.gameUrl} className="w-full h-14 bg-primary hover:bg-primary/90 text-white font-black uppercase tracking-[0.3em] text-xs rounded-2xl shadow-2xl shadow-primary/20">
@@ -395,7 +397,7 @@ export default function Home() {
       <ShadDialog open={showAdminKeyDialog} onOpenChange={setShowAdminKeyDialog}>
         <ShadDialogContent className="rounded-3xl border-accent/30 bg-card/90 backdrop-blur-xl">
           <ShadDialogHeader>
-            <ShadDialogTitle className="text-xl font-black uppercase italic italic tracking-tighter">Enter Admin Protocol</ShadDialogTitle>
+            <ShadDialogTitle className="text-xl font-black uppercase italic tracking-tighter">Enter Admin Protocol</ShadDialogTitle>
           </ShadDialogHeader>
           <div className="py-4">
             <Input 
