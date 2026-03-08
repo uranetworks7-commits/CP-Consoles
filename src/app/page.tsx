@@ -1,11 +1,10 @@
-
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { GAMES_LIBRARY, Game } from '@/lib/games';
 import { GameCard } from '@/components/GameCard';
 import { GameLaunchPad } from '@/components/GameLaunchPad';
-import { MonitorPlay, LogOut, Cpu, Gamepad2, PlusCircle, History, Settings, Sun, Moon, ArrowLeft, Rocket, Key, CheckCircle2, BarChart3, Edit3, Save, X as CloseIcon, Share2, Check, Trash2, Bookmark } from 'lucide-react';
+import { MonitorPlay, LogOut, Cpu, Gamepad2, PlusCircle, History, Settings, Sun, Moon, ArrowLeft, Rocket, Key, CheckCircle2, BarChart3, Edit3, Save, X as CloseIcon, Share2, Check, Trash2, Bookmark, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useRTDB } from '@/firebase';
 import { ref, get, child, update, push, onValue, off, remove } from 'firebase/database';
@@ -39,6 +38,7 @@ export default function Home() {
   const [showNewProject, setShowNewProject] = useState(false);
   const [showUserAnalytics, setShowUserAnalytics] = useState(false);
   const [showSavedGames, setShowSavedGames] = useState(false);
+  const [viewingDev, setViewingDev] = useState<any>(null);
   const [isPublishing, setIsPublishing] = useState(false);
   const [editingApp, setEditingApp] = useState<any>(null);
   const [appToDelete, setAppToDelete] = useState<any>(null);
@@ -129,7 +129,8 @@ export default function Home() {
       likes: sub.likes || 0,
       dislikes: sub.dislikes || 0,
       developerInfo: sub.developerInfo,
-      profileImageUrl: sub.profileImageUrl
+      profileImageUrl: sub.profileImageUrl,
+      developerBio: sub.developerBio || 'System Authorized'
     }));
     return [...GAMES_LIBRARY, ...dynamicGames];
   }, [approvedSubmissions]);
@@ -246,6 +247,7 @@ export default function Home() {
     setShowNewProject(false);
     setShowUserAnalytics(false);
     setShowSavedGames(false);
+    setViewingDev(null);
     setIsAdminMode(false);
     setAppToDelete(null);
     setEditingApp(null);
@@ -299,7 +301,8 @@ export default function Home() {
         likes: 0,
         dislikes: 0,
         views: "0",
-        played: "0"
+        played: "0",
+        developerBio: formData.developerInfo
       });
       toast({ title: "App Published", description: "Your App under Review." });
       setFormData({ profileImageUrl: '', gameName: '', gameType: '', gameUrl: '', thumbnailUrl: '', developerInfo: '' });
@@ -444,6 +447,35 @@ export default function Home() {
     );
   }
 
+  if (viewingDev) {
+    return (
+      <div className="min-h-screen bg-background animate-fade-in flex flex-col">
+        <header className="sticky top-0 z-30 bg-background/95 backdrop-blur-xl border-b border-border py-4 px-6 flex items-center justify-between">
+          <Button variant="ghost" size="sm" onClick={() => setViewingDev(null)} className="rounded-xl gap-2 font-black uppercase tracking-widest text-[10px]">
+            <ArrowLeft className="w-4 h-4" /> Back to Console
+          </Button>
+          <User className="w-5 h-5 text-primary" />
+        </header>
+        <main className="flex-1 flex flex-col items-center justify-center p-6 space-y-8 animate-fade-in">
+          <div className="w-full max-w-sm bg-card border border-border p-10 rounded-[3rem] shadow-2xl text-center space-y-6">
+            <Avatar className="h-32 w-32 mx-auto border-4 border-primary/20 shadow-xl">
+              <AvatarImage src={viewingDev.profileImageUrl} />
+              <AvatarFallback className="bg-secondary text-primary text-3xl font-black">DEV</AvatarFallback>
+            </Avatar>
+            <div>
+              <p className="text-[10px] text-muted-foreground uppercase font-black tracking-[0.3em] italic mb-2">Architect Identity</p>
+              <h1 className="text-3xl font-black italic tracking-tighter uppercase">{viewingDev.developerInfo || 'Unknown'}</h1>
+            </div>
+            <div className="p-6 bg-secondary/20 rounded-2xl border border-border/50">
+              <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest italic mb-2">System Clearance</p>
+              <p className="text-sm font-bold leading-relaxed">{viewingDev.developerBio || 'System Authorized'}</p>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   if (showNewProject) {
     return (
       <div className="min-h-screen bg-background animate-fade-in">
@@ -466,8 +498,8 @@ export default function Home() {
                 <Input placeholder="App Name" maxLength={12} value={formData.gameName} onChange={(e) => setFormData({...formData, gameName: e.target.value})} className="rounded-xl bg-secondary/10" />
               </div>
               <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">Classification</Label>
-                <Input placeholder="Action, Battle, etc." value={formData.gameType} onChange={(e) => setFormData({...formData, gameType: e.target.value})} className="rounded-xl bg-secondary/10" />
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">Classification (Max 15)</Label>
+                <Input placeholder="Action, Battle, etc." maxLength={15} value={formData.gameType} onChange={(e) => setFormData({...formData, gameType: e.target.value})} className="rounded-xl bg-secondary/10" />
               </div>
             </div>
             <div className="space-y-2">
@@ -501,7 +533,7 @@ export default function Home() {
           <Bookmark className="w-5 h-5 text-primary" />
         </header>
         <main className="max-w-2xl mx-auto p-6 space-y-8 pb-32">
-          <h1 className="text-3xl font-black uppercase italic tracking-tighter">Saved Protocols</h1>
+          <h1 className="text-3xl font-black uppercase italic tracking-tighter">Saved Items</h1>
           <div className="grid gap-6">
             {savedGames.length === 0 ? (
               <div className="p-10 border border-dashed border-border rounded-3xl text-center">
@@ -509,7 +541,7 @@ export default function Home() {
               </div>
             ) : (
               savedGames.map((game) => (
-                <GameCard key={game.id} game={game} onLaunch={handleLaunchGame} user={loggedInUser} />
+                <GameCard key={game.id} game={game} onLaunch={handleLaunchGame} user={loggedInUser} onAboutDev={setViewingDev} savedGames={savedGames} />
               ))
             )}
           </div>
@@ -594,8 +626,8 @@ export default function Home() {
                   <Input value={editingApp?.gameName || ''} maxLength={12} onChange={(e) => setEditingApp({...editingApp, gameName: e.target.value})} className="rounded-xl bg-secondary/20" />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Classification</Label>
-                  <Input value={editingApp?.gameType || ''} onChange={(e) => setEditingApp({...editingApp, gameType: e.target.value})} className="rounded-xl bg-secondary/20" />
+                  <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Classification (Max 15)</Label>
+                  <Input value={editingApp?.gameType || ''} maxLength={15} onChange={(e) => setEditingApp({...editingApp, gameType: e.target.value})} className="rounded-xl bg-secondary/20" />
                 </div>
               </div>
               <div className="space-y-2">
@@ -745,7 +777,7 @@ export default function Home() {
                       variant="outline"
                       className="w-full h-14 bg-secondary/20 hover:bg-primary/10 text-foreground rounded-2xl border-border text-[10px] font-black uppercase tracking-widest"
                     >
-                      <Bookmark className="w-4 h-4 mr-2" /> Saved Protocols
+                      <Bookmark className="w-4 h-4 mr-2" /> Saved Items
                     </Button>
                     <Button 
                       onClick={() => setShowNewProject(true)} 
@@ -780,7 +812,7 @@ export default function Home() {
         <section className="pb-20 space-y-6 pt-6">
           <div className="grid gap-6">
             {displayGames.map((game) => (
-              <GameCard key={game.id} game={game} onLaunch={handleLaunchGame} user={loggedInUser} />
+              <GameCard key={game.id} game={game} onLaunch={handleLaunchGame} user={loggedInUser} onAboutDev={setViewingDev} savedGames={savedGames} />
             ))}
           </div>
         </section>

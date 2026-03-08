@@ -1,39 +1,38 @@
-
 "use client";
 
 import Image from 'next/image';
 import { Game } from '@/lib/games';
 import { Eye, MousePointer2, ThumbsUp, ThumbsDown, Play, Share2, MoreVertical, Bookmark, User, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { useRTDB } from '@/firebase';
-import { ref, update } from 'firebase/database';
+import { ref, update, remove } from 'firebase/database';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 interface GameCardProps {
   game: Game;
   onLaunch: (game: Game) => void;
   user: any;
+  onAboutDev: (dev: any) => void;
+  savedGames: any[];
 }
 
-export function GameCard({ game, onLaunch, user }: GameCardProps) {
+export function GameCard({ game, onLaunch, user, onAboutDev, savedGames }: GameCardProps) {
   const [likes, setLikes] = useState(game.likes || 0);
   const [dislikes, setDislikes] = useState(game.dislikes || 0);
   const [userVote, setUserVote] = useState<'like' | 'dislike' | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const rtdb = useRTDB();
+
+  const isSaved = useMemo(() => {
+    return savedGames.some(sg => sg.id === game.id);
+  }, [savedGames, game.id]);
 
   const syncVotes = (newL: number, newD: number) => {
     if (!rtdb) return;
@@ -86,7 +85,11 @@ export function GameCard({ game, onLaunch, user }: GameCardProps) {
   const handleSave = async () => {
     if (!rtdb || !user) return;
     const saveRef = ref(rtdb, `users/${user.username}/savedGames/${game.id}`);
-    update(saveRef, game);
+    if (isSaved) {
+      remove(saveRef);
+    } else {
+      update(saveRef, game);
+    }
   };
 
   const handlePlayClick = () => {
@@ -113,11 +116,11 @@ export function GameCard({ game, onLaunch, user }: GameCardProps) {
         </div>
         
         <div className="flex-1 flex flex-col gap-1.5 overflow-hidden">
-          <div className="flex items-center justify-between gap-2">
-            <h3 className="text-xl font-black tracking-tighter uppercase italic text-foreground leading-none truncate">
+          <div className="flex items-center justify-between gap-2 overflow-visible">
+            <h3 className="text-xl font-black tracking-tighter uppercase italic text-foreground leading-none whitespace-normal break-words">
               {game.title}
             </h3>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 shrink-0">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full bg-secondary/20 hover:bg-primary/20 transition-colors">
@@ -125,33 +128,14 @@ export function GameCard({ game, onLaunch, user }: GameCardProps) {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="rounded-xl bg-card border-border min-w-[150px]">
-                  <DropdownMenuItem onClick={handleShare} className="font-black uppercase italic tracking-widest text-[10px] gap-3 py-2.5">
+                  <DropdownMenuItem onClick={handleShare} className="font-black uppercase italic tracking-widest text-[10px] gap-3 py-2.5 cursor-pointer">
                     <Share2 className="w-3.5 h-3.5" /> Share
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleSave} className="font-black uppercase italic tracking-widest text-[10px] gap-3 py-2.5 text-primary">
-                    <Bookmark className="w-3.5 h-3.5" /> Save
+                  <DropdownMenuItem onClick={handleSave} className="font-black uppercase italic tracking-widest text-[10px] gap-3 py-2.5 text-primary cursor-pointer">
+                    <Bookmark className={cn("w-3.5 h-3.5", isSaved && "fill-current")} /> {isSaved ? "Saved" : "Save"}
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <button className="w-full flex items-center font-black uppercase italic tracking-widest text-[10px] gap-3 py-2.5 px-2 hover:bg-accent/10 rounded-sm">
-                          <User className="w-3.5 h-3.5" /> About Developer
-                        </button>
-                      </PopoverTrigger>
-                      <PopoverContent side="left" className="w-64 rounded-2xl bg-card/95 backdrop-blur-xl border-border p-4 shadow-2xl z-50">
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-12 w-12 border border-primary/30">
-                            <AvatarImage src={game.profileImageUrl} />
-                            <AvatarFallback className="bg-secondary text-primary font-black text-xs uppercase">DEV</AvatarFallback>
-                          </Avatar>
-                          <div className="overflow-hidden">
-                            <p className="text-[8px] text-muted-foreground uppercase font-black tracking-widest italic mb-0.5">Architect</p>
-                            <p className="text-sm font-black italic uppercase text-foreground leading-none truncate mb-1">{game.developerInfo || 'Unknown'}</p>
-                            <p className="text-[9px] text-muted-foreground font-bold leading-tight">{game.developerBio || 'System Authorized'}</p>
-                          </div>
-                        </div>
-                      </PopoverContent>
-                    </Popover>
+                  <DropdownMenuItem onClick={() => onAboutDev(game)} className="font-black uppercase italic tracking-widest text-[10px] gap-3 py-2.5 cursor-pointer">
+                    <User className="w-3.5 h-3.5" /> About Developer
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
