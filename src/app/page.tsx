@@ -1,13 +1,13 @@
 
 "use client";
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { GAMES_LIBRARY, Game } from '@/lib/games';
 import { GameCard } from '@/components/GameCard';
 import { GameLaunchPad } from '@/components/GameLaunchPad';
 import { MonitorPlay, LogIn, LogOut, Cpu, Gamepad2, PlusCircle, BarChart3, Trophy, History, Settings, Sun, Moon, ArrowLeft, Globe, Rocket, ShieldCheck, Key, CheckCircle2, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useRTDB, useFirestore, useCollection } from '@/firebase';
+import { useFirestore, useCollection, useRTDB } from '@/firebase';
 import { ref, get, child, update } from 'firebase/database';
 import { collection, addDoc, query, where, serverTimestamp, doc, updateDoc } from 'firebase/firestore';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -27,6 +27,13 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+} from "@/Dialog";
+import {
+  Dialog as ShadDialog,
+  DialogContent as ShadDialogContent,
+  DialogHeader as ShadDialogHeader,
+  DialogTitle as ShadDialogTitle,
+  DialogFooter as ShadDialogFooter,
 } from "@/components/ui/dialog";
 
 export default function Home() {
@@ -40,7 +47,7 @@ export default function Home() {
   const [isPublishing, setIsPublishing] = useState(false);
 
   // Admin State
-  const [settingsClickCount, setSettingsClickCount] = useState(0);
+  const longPressTimer = useRef<NodeJS.Timeout | null>(null);
   const [showAdminKeyDialog, setShowAdminKeyDialog] = useState(false);
   const [adminKeyInput, setAdminKeyInput] = useState('');
   const [isAdminMode, setIsAdminMode] = useState(false);
@@ -130,15 +137,17 @@ export default function Home() {
     }
   };
 
-  const handleSettingsTrigger = () => {
-    const nextCount = settingsClickCount + 1;
-    if (nextCount === 3) {
+  const startLongPress = () => {
+    longPressTimer.current = setTimeout(() => {
       setShowAdminKeyDialog(true);
-      setSettingsClickCount(0);
-    } else {
-      setSettingsClickCount(nextCount);
-      // Reset if no more clicks for 2 seconds
-      setTimeout(() => setSettingsClickCount(0), 2000);
+      longPressTimer.current = null;
+    }, 2000); // 2 seconds long press
+  };
+
+  const endLongPress = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
     }
   };
 
@@ -383,11 +392,11 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <Dialog open={showAdminKeyDialog} onOpenChange={setShowAdminKeyDialog}>
-        <DialogContent className="rounded-3xl border-accent/30 bg-card/90 backdrop-blur-xl">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-black uppercase italic italic tracking-tighter">Enter Admin Protocol</DialogTitle>
-          </DialogHeader>
+      <ShadDialog open={showAdminKeyDialog} onOpenChange={setShowAdminKeyDialog}>
+        <ShadDialogContent className="rounded-3xl border-accent/30 bg-card/90 backdrop-blur-xl">
+          <ShadDialogHeader>
+            <ShadDialogTitle className="text-xl font-black uppercase italic italic tracking-tighter">Enter Admin Protocol</ShadDialogTitle>
+          </ShadDialogHeader>
           <div className="py-4">
             <Input 
               type="password" 
@@ -397,11 +406,11 @@ export default function Home() {
               className="rounded-xl bg-secondary/20 border-accent/20 text-center text-lg tracking-widest"
             />
           </div>
-          <DialogFooter>
+          <ShadDialogFooter>
             <Button onClick={verifyAdminKey} className="w-full bg-accent hover:bg-accent/90 text-accent-foreground font-black uppercase tracking-widest">Authorize Access</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </ShadDialogFooter>
+        </ShadDialogContent>
+      </ShadDialog>
 
       <main className="max-w-2xl mx-auto px-4 sm:px-6">
         <header className="sticky top-0 z-30 bg-background/95 backdrop-blur-xl border-b border-border py-5">
@@ -415,7 +424,14 @@ export default function Home() {
 
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="rounded-full w-10 h-10 border border-border/50" onClick={handleSettingsTrigger}>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="rounded-full w-10 h-10 border border-border/50"
+                  onPointerDown={startLongPress}
+                  onPointerUp={endLongPress}
+                  onPointerLeave={endLongPress}
+                >
                   <Settings className="w-6 h-6 text-foreground" />
                 </Button>
               </SheetTrigger>
