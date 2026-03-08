@@ -46,7 +46,7 @@ export default function Home() {
       setUserData(data);
       setDbLoading(false);
     }, (error) => {
-      console.error("RTDB Error:", error);
+      console.error("RTDB Sync Error:", error);
       setDbLoading(false);
     });
 
@@ -57,8 +57,8 @@ export default function Home() {
     if (!auth || !rtdb) {
       toast({
         variant: "destructive",
-        title: "System Offline",
-        description: "Firebase modules failed to initialize. Please check your config.",
+        title: "Initialization Error",
+        description: "Firebase services are still syncing. Please wait a moment.",
       });
       return;
     }
@@ -67,7 +67,7 @@ export default function Home() {
       toast({
         variant: "destructive",
         title: "Identification Required",
-        description: "Enter an Operator Handle to initialize session.",
+        description: "Enter an Operator Handle to begin initialization.",
       });
       return;
     }
@@ -94,7 +94,7 @@ export default function Home() {
       console.error("Auth Exception:", error);
       let errorMsg = error.message;
       if (error.code === 'auth/unauthorized-domain') {
-        errorMsg = "Domain not authorized. Add your workstation URL to Firebase Auth -> Settings -> Authorized Domains.";
+        errorMsg = "Domain blocked. Add this URL to Firebase Auth -> Authorized Domains.";
       }
       
       toast({
@@ -120,7 +120,7 @@ export default function Home() {
           <div className="w-12 h-12 rounded-xl bg-primary animate-pulse flex items-center justify-center">
             <Cpu className="text-white w-6 h-6 animate-spin duration-[3000ms]" />
           </div>
-          <p className="text-[10px] font-mono text-primary uppercase tracking-[0.3em] animate-pulse">Initializing_Sync...</p>
+          <p className="text-[10px] font-mono text-primary uppercase tracking-[0.3em] animate-pulse">Synchronizing_Neural_Link...</p>
         </div>
       </div>
     );
@@ -152,7 +152,7 @@ export default function Home() {
             <div className="space-y-4">
               <div className="space-y-2">
                 <label className="text-[9px] font-black uppercase tracking-[0.2em] text-primary/80 ml-1">
-                  Operator Handle
+                  Operator Handle (Mixed Case Allowed)
                 </label>
                 <Input
                   placeholder="Ex: Commander_X"
@@ -171,7 +171,7 @@ export default function Home() {
                   <div className="flex gap-2">
                     <div className="w-1.5 h-1.5 bg-white rounded-full animate-bounce" />
                     <div className="w-1.5 h-1.5 bg-white rounded-full animate-bounce [animation-delay:0.2s]" />
-                    Syncing...
+                    Linking...
                   </div>
                 ) : (
                   <>
@@ -184,7 +184,7 @@ export default function Home() {
             
             <div className="pt-4 border-t border-border/10">
               <p className="text-[7px] font-mono text-center text-muted-foreground/30 uppercase tracking-[0.2em]">
-                Secure_Link // Realtime_Database_Active
+                Secure_Handshake // Realtime_DB_Ready
               </p>
             </div>
           </div>
@@ -235,7 +235,7 @@ export default function Home() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="w-56 bg-[#0a0c10] border-border/30 rounded-xl p-1 mt-2" align="start">
                     <DropdownMenuLabel className="p-3">
-                      <p className="text-[10px] font-black uppercase italic tracking-tighter text-foreground">
+                      <p className="text-[10px] font-black italic tracking-tighter text-foreground">
                         {userData?.username || user.displayName}
                       </p>
                       <p className="text-[8px] font-mono text-muted-foreground/60">{user.email}</p>
@@ -277,7 +277,7 @@ export default function Home() {
         </section>
 
         <footer className="py-8 flex flex-col items-center gap-3 text-muted-foreground/10 border-t border-border/5">
-          <p className="text-[7px] font-mono uppercase tracking-[0.3em]">Core_v4.2.0 // Realtime_DB_Authorized</p>
+          <p className="text-[7px] font-mono uppercase tracking-[0.3em]">Core_v5.0.0 // RTDB_SYNC_ENABLED</p>
           <p className="text-[7px] font-mono uppercase tracking-widest">© Pulse_Consoles_Systems</p>
         </footer>
       </main>
