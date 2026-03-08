@@ -30,16 +30,16 @@ interface GameCardProps {
   onLaunch: (game: Game) => void;
   user: any;
   onAboutDev: (dev: any) => void;
+  onShowId: (id: string) => void;
   savedGames: any[];
 }
 
-export function GameCard({ game, onLaunch, user, onAboutDev, savedGames }: GameCardProps) {
+export function GameCard({ game, onLaunch, user, onAboutDev, onShowId, savedGames }: GameCardProps) {
   const [likes, setLikes] = useState(game.likes || 0);
   const [dislikes, setDislikes] = useState(game.dislikes || 0);
   const [userVote, setUserVote] = useState<'like' | 'dislike' | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   
-  const [showIdDialog, setShowIdDialog] = useState(false);
   const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
   const [showReportDialog, setShowReportDialog] = useState(false);
   
@@ -182,20 +182,20 @@ export function GameCard({ game, onLaunch, user, onAboutDev, savedGames }: GameC
                   <DropdownMenuItem onClick={() => onAboutDev(game)} className="font-black uppercase italic tracking-widest text-[10px] gap-3 py-2.5 cursor-pointer">
                     <User className="w-3.5 h-3.5" /> About Developer
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setShowIdDialog(true)} className="font-black uppercase italic tracking-widest text-[10px] gap-3 py-2.5 cursor-pointer">
+                  <DropdownMenuItem onClick={() => onShowId(game.id)} className="font-black uppercase italic tracking-widest text-[10px] gap-3 py-2.5 cursor-pointer">
                     <Fingerprint className="w-3.5 h-3.5" /> Post Id
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
           </div>
-          <div className="flex items-center gap-4 text-muted-foreground/60">
-            <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest">
-              <Eye className="w-3.5 h-3.5 text-primary/70" />
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-primary/80 dark:text-primary/70">
+              <Eye className="w-3.5 h-3.5" />
               {game.views}
             </div>
-            <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest">
-              <MousePointer2 className="w-3.5 h-3.5 text-accent/70" />
+            <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-accent/90 dark:text-accent/80">
+              <MousePointer2 className="w-3.5 h-3.5" />
               {game.played}
             </div>
           </div>
@@ -268,21 +268,6 @@ export function GameCard({ game, onLaunch, user, onAboutDev, savedGames }: GameC
           </div>
         )}
       </Button>
-
-      {/* Post ID Dialog */}
-      <Dialog open={showIdDialog} onOpenChange={setShowIdDialog}>
-        <DialogContent className="rounded-3xl border-border bg-card/95 backdrop-blur-xl max-w-sm [&>button]:hidden">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-black uppercase italic tracking-tighter">Engine Identifier</DialogTitle>
-          </DialogHeader>
-          <div className="py-6 text-center">
-            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 italic">System Post ID</p>
-            <p className="font-mono text-primary text-sm bg-secondary/20 p-4 rounded-xl border border-border/50 break-all">
-              {game.id}
-            </p>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       {/* Feedback Dialog */}
       <Dialog open={showFeedbackDialog} onOpenChange={setShowFeedbackDialog}>

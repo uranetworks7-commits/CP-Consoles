@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { GAMES_LIBRARY, Game } from '@/lib/games';
 import { GameCard } from '@/components/GameCard';
 import { GameLaunchPad } from '@/components/GameLaunchPad';
-import { MonitorPlay, LogOut, Cpu, Gamepad2, PlusCircle, History, Settings, Sun, Moon, ArrowLeft, Rocket, Key, CheckCircle2, BarChart3, Edit3, Save, X as CloseIcon, Share2, Check, Trash2, Bookmark, User } from 'lucide-react';
+import { MonitorPlay, LogOut, Cpu, Gamepad2, PlusCircle, History, Settings, Sun, Moon, ArrowLeft, Rocket, Key, CheckCircle2, BarChart3, Edit3, Save, X as CloseIcon, Share2, Check, Trash2, Bookmark, User, Fingerprint } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useRTDB } from '@/firebase';
 import { ref, get, child, update, push, onValue, off, remove } from 'firebase/database';
@@ -39,6 +39,7 @@ export default function Home() {
   const [showUserAnalytics, setShowUserAnalytics] = useState(false);
   const [showSavedGames, setShowSavedGames] = useState(false);
   const [viewingDev, setViewingDev] = useState<any>(null);
+  const [viewingPostId, setViewingPostId] = useState<string | null>(null);
   const [isPublishing, setIsPublishing] = useState(false);
   const [editingApp, setEditingApp] = useState<any>(null);
   const [appToDelete, setAppToDelete] = useState<any>(null);
@@ -248,6 +249,7 @@ export default function Home() {
     setShowUserAnalytics(false);
     setShowSavedGames(false);
     setViewingDev(null);
+    setViewingPostId(null);
     setIsAdminMode(false);
     setAppToDelete(null);
     setEditingApp(null);
@@ -447,6 +449,37 @@ export default function Home() {
     );
   }
 
+  if (viewingPostId) {
+    return (
+      <div className="min-h-screen bg-background animate-fade-in flex flex-col">
+        <header className="sticky top-0 z-30 bg-background/95 backdrop-blur-xl border-b border-border py-4 px-6 flex items-center justify-between">
+          <Button variant="ghost" size="sm" onClick={() => setViewingPostId(null)} className="rounded-xl gap-2 font-black uppercase tracking-widest text-[10px]">
+            <ArrowLeft className="w-4 h-4" /> Back to Console
+          </Button>
+          <Fingerprint className="w-5 h-5 text-primary" />
+        </header>
+        <main className="flex-1 flex flex-col items-center justify-center p-6 space-y-8 animate-fade-in">
+          <div className="w-full max-w-md bg-card border border-border p-12 rounded-[3rem] shadow-2xl text-center space-y-8">
+            <div className="w-20 h-20 rounded-[1.5rem] bg-primary/10 flex items-center justify-center mx-auto mb-4">
+              <Fingerprint className="text-primary w-10 h-10" />
+            </div>
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground mb-4 italic">Engine Identifier</p>
+              <div className="p-6 bg-secondary/20 rounded-2xl border border-border/50 select-all group transition-all hover:border-primary/50">
+                <p className="font-mono text-primary text-lg break-all group-hover:text-accent transition-colors">
+                  {viewingPostId}
+                </p>
+              </div>
+            </div>
+            <Button variant="ghost" onClick={() => copyToClipboard(viewingPostId)} className="w-full rounded-xl gap-2 font-black uppercase tracking-widest text-[10px] hover:bg-primary/10">
+              <Share2 className="w-4 h-4" /> Copy Protocol ID
+            </Button>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   if (viewingDev) {
     return (
       <div className="min-h-screen bg-background animate-fade-in flex flex-col">
@@ -543,7 +576,7 @@ export default function Home() {
               </div>
             ) : (
               savedGames.map((game) => (
-                <GameCard key={game.id} game={game} onLaunch={handleLaunchGame} user={loggedInUser} onAboutDev={setViewingDev} savedGames={savedGames} />
+                <GameCard key={game.id} game={game} onLaunch={handleLaunchGame} user={loggedInUser} onAboutDev={setViewingDev} onShowId={setViewingPostId} savedGames={savedGames} />
               ))
             )}
           </div>
@@ -814,7 +847,7 @@ export default function Home() {
         <section className="pb-20 space-y-6 pt-6">
           <div className="grid gap-6">
             {displayGames.map((game) => (
-              <GameCard key={game.id} game={game} onLaunch={handleLaunchGame} user={loggedInUser} onAboutDev={setViewingDev} savedGames={savedGames} />
+              <GameCard key={game.id} game={game} onLaunch={handleLaunchGame} user={loggedInUser} onAboutDev={setViewingDev} onShowId={setViewingPostId} savedGames={savedGames} />
             ))}
           </div>
         </section>
