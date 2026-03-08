@@ -181,14 +181,6 @@ export default function Home() {
                   Connect Plus Console
                 </h1>
               </div>
-
-              <Button 
-                variant="outline"
-                className="bg-accent/5 border-accent/20 text-accent hover:bg-accent hover:text-accent-foreground rounded-full px-4 h-9 font-black uppercase text-[9px] tracking-widest gap-2"
-              >
-                <PlusCircle className="w-3.5 h-3.5" />
-                New Project
-              </Button>
             </div>
 
             {/* Unified Profile Trigger */}
@@ -249,6 +241,14 @@ export default function Home() {
                   </div>
 
                   <div className="space-y-4">
+                    <Button 
+                      variant="outline"
+                      className="w-full flex items-center justify-center gap-3 h-14 bg-accent/5 hover:bg-accent hover:text-accent-foreground text-accent rounded-2xl border border-accent/10 text-[10px] font-black uppercase tracking-widest transition-all"
+                    >
+                      <PlusCircle className="w-4 h-4" />
+                      New Project
+                    </Button>
+
                     <div className="p-5 bg-black/40 rounded-2xl border border-border/10">
                       <div className="flex items-center justify-between mb-4">
                         <span className="flex items-center gap-2 text-xs font-black uppercase tracking-widest italic">
