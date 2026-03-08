@@ -260,7 +260,7 @@ export default function Home() {
                   <div className="space-y-4">
                     <Button 
                       variant="outline"
-                      className="w-full flex items-center justify-center gap-3 h-14 bg-accent/10 hover:bg-accent hover:text-accent-foreground text-accent rounded-2xl border border-accent/30 text-[10px] font-black uppercase tracking-widest transition-all shadow-sm"
+                      className="w-full flex items-center justify-center gap-3 h-14 bg-primary/10 hover:bg-primary hover:text-primary-foreground text-primary rounded-2xl border border-primary/30 text-[10px] font-black uppercase tracking-widest transition-all shadow-sm"
                     >
                       <PlusCircle className="w-4 h-4" />
                       New Project
