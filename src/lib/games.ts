@@ -1,4 +1,3 @@
-
 export interface Game {
   id: string;
   title: string;
@@ -10,6 +9,15 @@ export interface Game {
 }
 
 export const GAMES_LIBRARY: Game[] = [
+  {
+    id: 'chaos-squad',
+    title: 'CS: Chaos Squad',
+    description: 'High-octane tactical shooter. Form your squad and dominate the battlefield in this intense combat experience.',
+    url: 'https://yandex.com/games/app/417075?utm_source=app_page',
+    thumbnail: 'https://picsum.photos/seed/chaos1/600/400',
+    category: 'Shooter',
+    players: 'Multiplayer'
+  },
   {
     id: 'nitro-racer',
     title: 'Nitro Racer',
@@ -54,14 +62,5 @@ export const GAMES_LIBRARY: Game[] = [
     thumbnail: 'https://picsum.photos/seed/cyber1/600/400',
     category: 'Arcade',
     players: 'Single Player'
-  },
-  {
-    id: 'star-strategy',
-    title: 'Galactic Command',
-    description: 'Real-time strategy set in a sprawling galaxy of warring factions.',
-    url: 'https://picsum.photos/seed/strategy1/800/600',
-    thumbnail: 'https://picsum.photos/seed/strategy1/600/400',
-    category: 'Strategy',
-    players: 'Multiplayer'
   }
 ];

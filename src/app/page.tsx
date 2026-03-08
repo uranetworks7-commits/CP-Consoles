@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from 'react';
@@ -6,92 +5,73 @@ import { GAMES_LIBRARY, Game } from '@/lib/games';
 import { GameCard } from '@/components/GameCard';
 import { GameLaunchPad } from '@/components/GameLaunchPad';
 import { SidebarNav } from '@/components/Sidebar';
-import { Gamepad2, Sparkles, Zap, Flame } from 'lucide-react';
+import { Gamepad2, Sparkles, Zap, Flame, MonitorPlay } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 
 export default function Home() {
   const [activeGame, setActiveGame] = useState<Game | null>(null);
+  const [filter, setFilter] = useState('All');
+
+  const filteredGames = filter === 'All' 
+    ? GAMES_LIBRARY 
+    : GAMES_LIBRARY.filter(g => g.category === filter);
 
   return (
     <div className="flex min-h-screen bg-background text-foreground selection:bg-accent selection:text-accent-foreground">
       <SidebarNav />
 
       <main className="flex-1 overflow-y-auto custom-scrollbar">
-        <div className="max-w-7xl mx-auto px-8 py-10 space-y-12">
-          {/* Hero Section */}
-          <section className="relative overflow-hidden rounded-3xl bg-sidebar border border-border p-12">
-            <div className="absolute top-0 right-0 p-12 opacity-10 pointer-events-none">
-              <Gamepad2 className="w-64 h-64 text-primary" />
-            </div>
-            
-            <div className="relative z-10 max-w-2xl space-y-6 animate-fade-in">
-              <div className="flex items-center gap-2">
-                <Badge className="bg-accent/20 text-accent border-accent/30 hover:bg-accent/30 px-3 py-1">
-                  <Sparkles className="w-3 h-3 mr-1" />
-                  New Games Added
-                </Badge>
-                <Badge variant="outline" className="border-primary/50 text-primary px-3 py-1">
-                  <Zap className="w-3 h-3 mr-1" />
-                  Connect Pulse Enabled
-                </Badge>
+        <div className="max-w-6xl mx-auto px-8 py-10 space-y-10">
+          {/* CP Console Header */}
+          <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-accent">
+                <MonitorPlay className="w-5 h-5" />
+                <span className="text-sm font-bold tracking-widest uppercase">System Control Panel</span>
               </div>
-              
-              <h1 className="text-5xl font-black tracking-tight leading-tight font-headline">
-                LEVEL UP YOUR <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-accent to-cyan-400">
-                  DIGITAL REALITY
-                </span>
+              <h1 className="text-4xl font-black tracking-tight font-headline">
+                CP CONSOLE <span className="text-primary">01</span>
               </h1>
-              
-              <p className="text-muted-foreground text-lg leading-relaxed font-medium">
-                Welcome to GameNexus. Access a curated library of premium web-based experiences directly from your console. No downloads, just play.
+              <p className="text-muted-foreground font-medium max-w-md">
+                Direct access to the Nexus mainframe. Optimized for low-latency web playback.
               </p>
-              
-              <div className="flex gap-4">
+            </div>
+
+            <div className="flex items-center gap-2 bg-sidebar p-1.5 rounded-2xl border border-border">
+              {['All', 'Action', 'Shooter', 'Racing', 'Puzzle'].map((cat) => (
                 <button 
-                  onClick={() => setActiveGame(GAMES_LIBRARY[0])}
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 rounded-xl font-bold shadow-lg shadow-primary/30 transition-all hover:scale-105 active:scale-95 flex items-center gap-2"
+                  key={cat}
+                  onClick={() => setFilter(cat)}
+                  className={cn(
+                    "px-5 py-2 rounded-xl text-xs font-bold transition-all uppercase tracking-wider",
+                    filter === cat 
+                      ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" 
+                      : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent"
+                  )}
                 >
-                  <Flame className="w-5 h-5 fill-current" />
-                  Play Featured Now
+                  {cat}
                 </button>
-              </div>
+              ))}
             </div>
-          </section>
+          </header>
 
-          {/* Library Section */}
-          <section className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <h2 className="text-3xl font-bold font-headline">The Vault</h2>
-                <Badge variant="secondary" className="bg-sidebar px-3">
-                  {GAMES_LIBRARY.length} Titles
-                </Badge>
+          {/* Line by Line Game List */}
+          <section className="space-y-4">
+            <div className="flex items-center justify-between px-6 pb-2 border-b border-border/50 text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/60">
+              <div className="flex gap-12">
+                <span className="w-48">Game Metadata</span>
+                <span>Experience Details</span>
               </div>
-              
-              <div className="flex items-center gap-2">
-                {['All', 'Action', 'Racing', 'Shooter', 'Puzzle'].map((cat) => (
-                  <button 
-                    key={cat}
-                    className={cn(
-                      "px-4 py-2 rounded-full text-sm font-bold transition-all",
-                      cat === 'All' 
-                        ? "bg-accent text-accent-foreground shadow-md shadow-accent/20" 
-                        : "text-muted-foreground hover:bg-sidebar"
-                    )}
-                  >
-                    {cat}
-                  </button>
-                ))}
-              </div>
+              <span>System Link</span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-              {GAMES_LIBRARY.map((game, idx) => (
+            <div className="flex flex-col gap-3">
+              {filteredGames.map((game, idx) => (
                 <div 
                   key={game.id} 
                   className="animate-fade-in" 
-                  style={{ animationDelay: `${idx * 0.1}s` }}
+                  style={{ animationDelay: `${idx * 0.05}s` }}
                 >
                   <GameCard 
                     game={game} 
@@ -103,19 +83,15 @@ export default function Home() {
           </section>
 
           {/* Console Footer Info */}
-          <footer className="pt-20 pb-10 border-t border-border flex flex-col md:flex-row items-center justify-between gap-6 text-muted-foreground">
+          <footer className="pt-12 pb-10 border-t border-border flex flex-col md:flex-row items-center justify-between gap-6 text-muted-foreground">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              <p className="text-sm font-medium">System Status: Online & Optimized</p>
+              <p className="text-xs font-bold tracking-tight uppercase">Core Status: Optimized</p>
             </div>
             
-            <div className="flex items-center gap-8 text-sm">
-              <a href="#" className="hover:text-accent transition-colors font-medium">Support</a>
-              <a href="#" className="hover:text-accent transition-colors font-medium">Privacy Policy</a>
-              <a href="#" className="hover:text-accent transition-colors font-medium">Changelog</a>
-            </div>
-
-            <p className="text-xs font-mono">GameNexus OS v2.4.0</p>
+            <p className="text-[10px] font-mono opacity-50 uppercase tracking-widest">
+              GameNexus OS v2.4.0-STABLE // BUILD_ID: 8829-X
+            </p>
           </footer>
         </div>
       </main>
@@ -127,6 +103,3 @@ export default function Home() {
     </div>
   );
 }
-
-// Utility import for conditional classes if not already globally available
-import { cn } from '@/lib/utils';

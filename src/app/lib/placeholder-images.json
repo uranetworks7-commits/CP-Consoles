@@ -1,6 +1,11 @@
-
 {
   "placeholderImages": [
+    {
+      "id": "chaos-squad",
+      "description": "Tactical combat for Chaos Squad",
+      "imageUrl": "https://picsum.photos/seed/chaos1/600/400",
+      "imageHint": "tactical shooter"
+    },
     {
       "id": "car-game",
       "description": "A high-speed racing game thumbnail",
