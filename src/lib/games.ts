@@ -28,6 +28,19 @@ export const GAMES_LIBRARY: Game[] = [
     dislikes: 120
   },
   {
+    id: 'battle-royal',
+    title: 'Battle Royale',
+    description: 'Ultimate survival arena.',
+    url: 'https://zapgames.io/cs-chaos-squad',
+    thumbnail: 'https://picsum.photos/seed/battle1/600/400',
+    category: 'Action',
+    players: 'Multiplayer',
+    views: '950K',
+    played: '620K',
+    likes: 9200,
+    dislikes: 80
+  },
+  {
     id: 'nitro-racer',
     title: 'Nitro Racer',
     description: 'High-speed arcade racing game.',
@@ -39,18 +52,5 @@ export const GAMES_LIBRARY: Game[] = [
     played: '450K',
     likes: 8500,
     dislikes: 45
-  },
-  {
-    id: 'ura-battle',
-    title: 'Ura Battle',
-    description: 'Intense tactical combat arena.',
-    url: 'https://ura-battle.netlify.app/',
-    thumbnail: 'https://picsum.photos/seed/battle1/600/400',
-    category: 'Action',
-    players: 'Multiplayer',
-    views: '500K',
-    played: '320K',
-    likes: 4200,
-    dislikes: 80
   }
 ];

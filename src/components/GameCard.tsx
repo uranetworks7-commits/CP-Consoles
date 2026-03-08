@@ -53,59 +53,59 @@ export function GameCard({ game, onLaunch }: GameCardProps) {
 
   return (
     <div 
-      className="group flex flex-col bg-card/10 hover:bg-card/30 border-b border-border/30 transition-all duration-200 p-4 gap-4"
+      className="group flex flex-col bg-card/10 hover:bg-card/20 border-b border-border/20 transition-all duration-200 p-5 gap-5"
     >
-      {/* Top Line: Preview + Identity & Metrics */}
+      {/* Row 1: Preview + Title + Metrics */}
       <div className="flex items-center gap-4">
-        <div className="relative w-20 h-14 sm:w-24 sm:h-16 rounded-lg overflow-hidden shrink-0 border border-border/50 shadow-lg">
+        <div className="relative w-24 h-16 rounded-xl overflow-hidden shrink-0 border border-border/50 shadow-xl bg-black">
           <Image
             src={game.thumbnail}
             alt={game.title}
             fill
-            className="object-cover group-hover:scale-110 transition-transform duration-500"
+            className="object-cover group-hover:scale-110 transition-transform duration-700"
           />
         </div>
         
-        <div className="flex-1 flex flex-col gap-0.5">
-          <h3 className="text-base sm:text-lg font-black tracking-tighter uppercase italic text-foreground leading-tight">
+        <div className="flex-1 flex flex-col gap-1">
+          <h3 className="text-xl font-black tracking-tighter uppercase italic text-foreground leading-none">
             {game.title}
           </h3>
-          <div className="flex items-center gap-3 text-muted-foreground/50">
-            <div className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-widest">
-              <Eye className="w-3 h-3" />
+          <div className="flex items-center gap-4 text-muted-foreground/40">
+            <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest">
+              <Eye className="w-3.5 h-3.5" />
               {game.views}
             </div>
-            <div className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-widest">
-              <MousePointer2 className="w-3 h-3" />
+            <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest">
+              <MousePointer2 className="w-3.5 h-3.5" />
               {game.played}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Second Line: Large "Post-Style" Interaction Buttons */}
+      {/* Row 2: Large Post-Style Interaction Buttons */}
       <div className="flex items-center">
-        <div className="flex bg-secondary/20 rounded-full p-1 border border-border/40 w-full sm:w-auto">
+        <div className="flex bg-secondary/10 rounded-full p-1.5 border border-border/30 w-full sm:w-auto">
           <button 
             onClick={handleLike}
             className={cn(
-              "flex-1 sm:flex-none flex items-center justify-center gap-3 px-8 py-3 rounded-full font-black text-sm uppercase transition-all active:scale-95",
+              "flex-1 sm:flex-none flex items-center justify-center gap-4 px-10 py-3.5 rounded-full font-black text-sm uppercase transition-all active:scale-95",
               userVote === 'like' 
-                ? "bg-primary text-white shadow-lg shadow-primary/20" 
-                : "text-muted-foreground hover:bg-primary/10 hover:text-primary"
+                ? "bg-primary text-white shadow-xl shadow-primary/30" 
+                : "text-muted-foreground/60 hover:bg-primary/10 hover:text-primary"
             )}
           >
             <ThumbsUp className={cn("w-5 h-5", userVote === 'like' && "fill-current")} />
             {likes.toLocaleString()}
           </button>
-          <div className="w-px h-6 bg-border/30 self-center mx-1" />
+          <div className="w-px h-8 bg-border/20 self-center mx-1.5" />
           <button 
             onClick={handleDislike}
             className={cn(
-              "flex-1 sm:flex-none flex items-center justify-center gap-3 px-8 py-3 rounded-full font-black text-sm uppercase transition-all active:scale-95",
+              "flex-1 sm:flex-none flex items-center justify-center gap-4 px-10 py-3.5 rounded-full font-black text-sm uppercase transition-all active:scale-95",
               userVote === 'dislike' 
-                ? "bg-destructive text-white shadow-lg shadow-destructive/20" 
-                : "text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                ? "bg-destructive text-white shadow-xl shadow-destructive/30" 
+                : "text-muted-foreground/60 hover:bg-destructive/10 hover:text-destructive"
             )}
           >
             <ThumbsDown className={cn("w-5 h-5", userVote === 'dislike' && "fill-current")} />
@@ -114,20 +114,20 @@ export function GameCard({ game, onLaunch }: GameCardProps) {
         </div>
       </div>
 
-      {/* Third Line: Distinct Play Button with Loading Animation */}
+      {/* Row 3: Full Width Play Button */}
       <Button 
         disabled={isLoading}
         onClick={handlePlayClick}
-        className="w-full bg-accent hover:bg-accent/90 text-accent-foreground font-black text-xs uppercase tracking-[0.2em] h-12 rounded-lg shadow-lg shadow-accent/10 transition-all active:scale-95"
+        className="w-full bg-accent hover:bg-accent/90 text-accent-foreground font-black text-sm uppercase tracking-[0.3em] h-14 rounded-xl shadow-xl shadow-accent/5 transition-all active:scale-[0.98] border border-white/5"
       >
         {isLoading ? (
-          <div className="flex gap-1.5 items-center justify-center">
-            <div className="w-2 h-2 bg-accent-foreground rounded-full animate-bounce [animation-delay:-0.3s]" />
-            <div className="w-2 h-2 bg-accent-foreground rounded-full animate-bounce [animation-delay:-0.15s]" />
-            <div className="w-2 h-2 bg-accent-foreground rounded-full animate-bounce" />
+          <div className="flex gap-2 items-center justify-center">
+            <div className="w-2.5 h-2.5 bg-accent-foreground rounded-full animate-bounce [animation-delay:-0.3s]" />
+            <div className="w-2.5 h-2.5 bg-accent-foreground rounded-full animate-bounce [animation-delay:-0.15s]" />
+            <div className="w-2.5 h-2.5 bg-accent-foreground rounded-full animate-bounce" />
           </div>
         ) : (
-          "Play"
+          "Play Now"
         )}
       </Button>
     </div>
