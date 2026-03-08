@@ -3,7 +3,7 @@
 
 import Image from 'next/image';
 import { Game } from '@/lib/games';
-import { Eye, MousePointer2, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { Eye, MousePointer2, ThumbsUp, ThumbsDown, Play, Share2, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -18,6 +18,7 @@ export function GameCard({ game, onLaunch }: GameCardProps) {
   const [dislikes, setDislikes] = useState(game.dislikes);
   const [userVote, setUserVote] = useState<'like' | 'dislike' | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isShared, setIsShared] = useState(false);
 
   const handleLike = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -41,6 +42,13 @@ export function GameCard({ game, onLaunch }: GameCardProps) {
       if (userVote === 'like') setLikes(prev => prev - 1);
       setUserVote('dislike');
     }
+  };
+
+  const handleShare = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(game.url);
+    setIsShared(true);
+    setTimeout(() => setIsShared(false), 2000);
   };
 
   const handlePlayClick = () => {
@@ -84,34 +92,47 @@ export function GameCard({ game, onLaunch }: GameCardProps) {
       </div>
 
       {/* Row 2: Large Post-Style Interaction Buttons */}
-      <div className="flex items-center">
-        <div className="flex bg-secondary/10 rounded-full p-1.5 border border-border/30 w-full sm:w-auto">
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="flex bg-secondary/10 rounded-full p-1.5 border border-border/30 flex-1 sm:flex-none">
           <button 
             onClick={handleLike}
             className={cn(
-              "flex-1 sm:flex-none flex items-center justify-center gap-4 px-10 py-3.5 rounded-full font-black text-sm uppercase transition-all active:scale-95",
+              "flex-1 sm:flex-none flex items-center justify-center gap-3 px-8 py-3 rounded-full font-black text-[10px] uppercase transition-all active:scale-95",
               userVote === 'like' 
                 ? "bg-primary text-white shadow-xl shadow-primary/30" 
                 : "text-muted-foreground/60 hover:bg-primary/10 hover:text-primary"
             )}
           >
-            <ThumbsUp className={cn("w-5 h-5", userVote === 'like' && "fill-current")} />
+            <ThumbsUp className={cn("w-4 h-4", userVote === 'like' && "fill-current")} />
             {likes.toLocaleString()}
           </button>
-          <div className="w-px h-8 bg-border/20 self-center mx-1.5" />
+          <div className="w-px h-6 bg-border/20 self-center mx-1" />
           <button 
             onClick={handleDislike}
             className={cn(
-              "flex-1 sm:flex-none flex items-center justify-center gap-4 px-10 py-3.5 rounded-full font-black text-sm uppercase transition-all active:scale-95",
+              "flex-1 sm:flex-none flex items-center justify-center gap-3 px-8 py-3 rounded-full font-black text-[10px] uppercase transition-all active:scale-95",
               userVote === 'dislike' 
                 ? "bg-destructive text-white shadow-xl shadow-destructive/30" 
                 : "text-muted-foreground/60 hover:bg-destructive/10 hover:text-destructive"
             )}
           >
-            <ThumbsDown className={cn("w-5 h-5", userVote === 'dislike' && "fill-current")} />
+            <ThumbsDown className={cn("w-4 h-4", userVote === 'dislike' && "fill-current")} />
             {dislikes.toLocaleString()}
           </button>
         </div>
+
+        <button 
+          onClick={handleShare}
+          className={cn(
+            "flex-1 sm:flex-none flex items-center justify-center gap-3 px-8 py-4.5 rounded-full font-black text-[10px] uppercase transition-all border border-border/30 bg-secondary/10 active:scale-95",
+            isShared 
+              ? "text-green-500 border-green-500/50 bg-green-500/5" 
+              : "text-muted-foreground/60 hover:text-accent hover:bg-accent/10 hover:border-accent/30"
+          )}
+        >
+          {isShared ? <Check className="w-4 h-4" /> : <Share2 className="w-4 h-4" />}
+          {isShared ? "URL Copied" : "Share"}
+        </button>
       </div>
 
       {/* Row 3: Full Width Play Button */}
@@ -127,7 +148,10 @@ export function GameCard({ game, onLaunch }: GameCardProps) {
             <div className="w-2.5 h-2.5 bg-accent-foreground rounded-full animate-bounce" />
           </div>
         ) : (
-          "Play Now"
+          <div className="flex items-center gap-3">
+            <Play className="w-5 h-5 fill-current" />
+            Play Now
+          </div>
         )}
       </Button>
     </div>
