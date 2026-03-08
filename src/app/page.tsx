@@ -207,7 +207,7 @@ export default function Home() {
                   <h1 className="text-xl font-black tracking-tighter uppercase italic text-foreground leading-none">
                     Pulse Consoles
                   </h1>
-                  <p className="text-[8px] font-mono text-primary/60 uppercase tracking-[0.2em] mt-1">
+                  <p className="text-[8px] font-mono text-primary/60 tracking-[0.2em] mt-1 uppercase">
                     Operator_{userData?.username || 'GUEST'}
                   </p>
                 </div>
