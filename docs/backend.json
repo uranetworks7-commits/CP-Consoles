@@ -13,6 +13,23 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["uid", "username"]
+    },
+    "GameSubmission": {
+      "title": "Game Submission",
+      "description": "Details of a game submitted by a user for review.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "gameName": { "type": "string" },
+        "gameType": { "type": "string" },
+        "gameUrl": { "type": "string" },
+        "thumbnailUrl": { "type": "string" },
+        "developerInfo": { "type": "string" },
+        "profileImageUrl": { "type": "string" },
+        "status": { "type": "string", "enum": ["under_review", "approved", "rejected"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "gameName", "gameUrl", "status"]
     }
   },
   "auth": {
@@ -22,6 +39,10 @@
     "/users/{userId}": {
       "schema": "User",
       "description": "Stores individual user profile data."
+    },
+    "/submissions/{submissionId}": {
+      "schema": "GameSubmission",
+      "description": "Collection of game submissions for review."
     }
   }
 }
