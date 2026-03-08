@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { GAMES_LIBRARY, Game } from '@/lib/games';
 import { GameCard } from '@/components/GameCard';
 import { GameLaunchPad } from '@/components/GameLaunchPad';
-import { MonitorPlay, User, PlusCircle, LogIn, LogOut, Terminal, Cpu } from 'lucide-react';
+import { MonitorPlay, LogIn, LogOut, Terminal, Cpu, PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useRTDB } from '@/firebase';
 import { ref, get, child } from 'firebase/database';
@@ -49,8 +49,8 @@ export default function Home() {
       return;
     }
 
-    const input = usernameInput.trim();
-    if (!input) {
+    const username = usernameInput.trim();
+    if (!username) {
       toast({
         variant: "destructive",
         title: "Identification Required",
@@ -62,32 +62,29 @@ export default function Home() {
     setIsLoggingIn(true);
     try {
       const dbRef = ref(rtdb);
-      const snapshot = await get(child(dbRef, 'users'));
+      // Direct check from Realtime Database exactly like provided snippet
+      const snapshot = await get(child(dbRef, `users/${username}`));
       
       if (snapshot.exists()) {
-        const users = snapshot.val();
-        // Look for the specific username (case sensitive)
-        const userEntry = Object.values(users).find((u: any) => u.username === input);
-
-        if (userEntry) {
-          setLoggedInUser(userEntry);
-          localStorage.setItem('pulse_session', JSON.stringify(userEntry));
-          toast({
-            title: "Access Granted",
-            description: `Credentials verified. Welcome, ${input}.`,
-          });
-        } else {
-          toast({
-            variant: "destructive",
-            title: "Access Denied",
-            description: "Operator Handle not found in system records.",
-          });
-        }
+        const userData = snapshot.val();
+        // If the database node exists, we consider it a successful login
+        const userProfile = {
+          username: username,
+          ...(typeof userData === 'object' ? userData : {})
+        };
+        
+        setLoggedInUser(userProfile);
+        localStorage.setItem('pulse_session', JSON.stringify(userProfile));
+        
+        toast({
+          title: "Access Granted",
+          description: `Credentials verified. Welcome, ${username}.`,
+        });
       } else {
         toast({
           variant: "destructive",
-          title: "Database Error",
-          description: "No user registry found in the database.",
+          title: "Access Denied",
+          description: "Operator Handle not found in system records.",
         });
       }
     } catch (error: any) {
@@ -95,7 +92,7 @@ export default function Home() {
       toast({
         variant: "destructive",
         title: "System Failure",
-        description: error.message || "Could not verify credentials.",
+        description: "Error connecting to database.",
       });
     } finally {
       setIsLoggingIn(false);
@@ -137,7 +134,7 @@ export default function Home() {
                   Pulse Console
                 </h1>
                 <p className="text-muted-foreground/60 text-[9px] font-mono uppercase tracking-[0.4em]">
-                  Direct_Database_Check
+                  Realtime_Database_Verification
                 </p>
               </div>
             </div>
@@ -145,10 +142,10 @@ export default function Home() {
             <div className="space-y-4">
               <div className="space-y-2">
                 <label className="text-[9px] font-black uppercase tracking-[0.2em] text-primary/80 ml-1">
-                  Operator Handle (Mixed Case)
+                  Operator Handle (Case Sensitive)
                 </label>
                 <Input
-                  placeholder="Enter username..."
+                  placeholder="Enter Username"
                   value={usernameInput}
                   onChange={(e) => setUsernameInput(e.target.value)}
                   className="h-12 bg-card/10 border-border/20 focus:border-primary/50 focus:ring-primary/20 font-mono rounded-xl px-5 text-sm tracking-widest text-foreground"
@@ -164,12 +161,12 @@ export default function Home() {
                   <div className="flex gap-2">
                     <div className="w-1.5 h-1.5 bg-white rounded-full animate-bounce" />
                     <div className="w-1.5 h-1.5 bg-white rounded-full animate-bounce [animation-delay:0.2s]" />
-                    Verifying...
+                    Checking...
                   </div>
                 ) : (
                   <>
                     <LogIn className="w-4 h-4" />
-                    Initialize Login
+                    Check Username
                   </>
                 )}
               </Button>
@@ -177,7 +174,7 @@ export default function Home() {
             
             <div className="pt-4 border-t border-border/10">
               <p className="text-[7px] font-mono text-center text-muted-foreground/30 uppercase tracking-[0.2em]">
-                Secure_Handshake // Database_Sync_Active
+                Direct_RTDB_Handshake // Protocol_Enabled
               </p>
             </div>
           </div>
@@ -222,7 +219,7 @@ export default function Home() {
                     <Button variant="ghost" className="relative h-9 w-9 rounded-xl p-0 overflow-hidden border border-primary/20 hover:border-primary">
                       <Avatar className="h-full w-full rounded-none">
                         <AvatarFallback className="bg-secondary/50 rounded-none text-primary text-[10px] font-bold">
-                          {loggedInUser.username.substring(0, 2).toUpperCase()}
+                          {loggedInUser.username.substring(0, 2)}
                         </AvatarFallback>
                       </Avatar>
                     </Button>
@@ -232,7 +229,7 @@ export default function Home() {
                       <p className="text-[10px] font-black italic tracking-tighter text-foreground">
                         {loggedInUser.username}
                       </p>
-                      <p className="text-[8px] font-mono text-muted-foreground/60">Pulse_ID: {loggedInUser.uid || 'N/A'}</p>
+                      <p className="text-[8px] font-mono text-muted-foreground/60">Pulse_Verified_Operator</p>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator className="bg-border/10" />
                     <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer font-bold uppercase text-[9px] tracking-widest p-2.5">
@@ -271,7 +268,7 @@ export default function Home() {
         </section>
 
         <footer className="py-8 flex flex-col items-center gap-3 text-muted-foreground/10 border-t border-border/5">
-          <p className="text-[7px] font-mono uppercase tracking-[0.3em]">Core_v5.0.0 // RTDB_VERIFY_ENABLED</p>
+          <p className="text-[7px] font-mono uppercase tracking-[0.3em]">Core_v5.0.0 // RTDB_SYNC_ACTIVE</p>
           <p className="text-[7px] font-mono uppercase tracking-widest">© Pulse_Consoles_Systems</p>
         </footer>
       </main>
