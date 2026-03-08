@@ -235,18 +235,20 @@ export function GameCard({ game, onLaunch, user, onAboutDev, onShowId, savedGame
           </button>
         </div>
 
-        <div className="flex items-center justify-center gap-6 px-4 py-2.5 bg-secondary/20 rounded-2xl border border-border/40">
-          <button 
-            onClick={() => setShowFeedbackDialog(true)}
-            className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-accent transition-colors group/btn"
-          >
-            <MessageSquare className="w-3.5 h-3.5 transition-transform group-hover/btn:scale-110" />
-            Feedback
-          </button>
-          <div className="w-px h-3 bg-border/50" />
+        <div className="flex items-center gap-2">
+          <div className="flex-1 bg-secondary/30 rounded-2xl p-1.5 border border-border/50">
+            <button 
+              onClick={() => setShowFeedbackDialog(true)}
+              className="w-full flex items-center justify-center gap-2.5 px-5 py-2.5 hover:bg-secondary/30 rounded-xl font-black text-[10px] uppercase tracking-widest text-muted-foreground hover:text-accent transition-all group/btn"
+            >
+              <MessageSquare className="w-4 h-4 transition-transform group-hover/btn:scale-110" />
+              Feedback
+            </button>
+          </div>
+          
           <button 
             onClick={() => setShowReportDialog(true)}
-            className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-destructive transition-colors group/btn"
+            className="px-4 py-2.5 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 hover:text-destructive transition-colors group/btn"
           >
             <AlertTriangle className="w-3.5 h-3.5 transition-transform group-hover/btn:scale-110" />
             Report

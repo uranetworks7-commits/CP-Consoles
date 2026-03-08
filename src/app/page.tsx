@@ -580,7 +580,7 @@ export default function Home() {
           <div className="grid gap-6">
             {savedGames.length === 0 ? (
               <div className="p-10 border border-dashed border-border rounded-3xl text-center">
-                <p className="text-muted-foreground font-bold uppercase tracking-widest text-xs italic">No Saved Engines // Bookmark your favorites</p>
+                <p className="text-muted-foreground font-bold uppercase tracking-widest text-xs italic">No Application Found // Bookmark your favorites</p>
               </div>
             ) : (
               savedGames.map((game) => (
@@ -873,7 +873,7 @@ export default function Home() {
             ) : (
               <div className="py-20 text-center space-y-4">
                 <Search className="w-12 h-12 text-muted-foreground/30 mx-auto" />
-                <p className="text-muted-foreground font-black uppercase italic tracking-widest text-xs">No Engines Found // Match Filter Failed</p>
+                <p className="text-muted-foreground font-black uppercase italic tracking-widest text-xs">No Application Found // Match Filter Failed</p>
               </div>
             )}
           </div>
