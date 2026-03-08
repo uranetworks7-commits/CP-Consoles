@@ -127,7 +127,7 @@ export default function Home() {
   if (!loggedInUser) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
-        <div className="w-full max-w-md space-y-8 bg-card/20 p-10 rounded-[2.5rem] border border-border/30 shadow-2xl backdrop-blur-md relative overflow-hidden">
+        <div className="w-full max-w-md space-y-8 bg-card/40 dark:bg-card/20 p-10 rounded-[2.5rem] border border-border shadow-2xl backdrop-blur-md relative overflow-hidden">
           <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/10 rounded-full blur-3xl" />
           
           <div className="relative space-y-8">
@@ -150,7 +150,7 @@ export default function Home() {
                   placeholder="Enter Username"
                   value={usernameInput}
                   onChange={(e) => setUsernameInput(e.target.value)}
-                  className="h-12 bg-card/10 border-border/20 focus:border-primary/50 focus:ring-primary/20 rounded-xl px-5 text-sm text-foreground"
+                  className="h-12 bg-background dark:bg-card/10 border-border focus:border-primary/50 focus:ring-primary/20 rounded-xl px-5 text-sm text-foreground"
                 />
               </div>
 
@@ -182,7 +182,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-primary selection:text-primary-foreground">
       <main className="max-w-2xl mx-auto px-4 sm:px-6 py-0">
-        <header className="sticky top-0 z-30 bg-background/95 backdrop-blur-xl border-b border-border/20 py-5">
+        <header className="sticky top-0 z-30 bg-background/95 backdrop-blur-xl border-b border-border py-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-xl shadow-primary/20">
@@ -195,16 +195,16 @@ export default function Home() {
 
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="rounded-full w-10 h-10 hover:bg-card/40 transition-colors">
+                <Button variant="ghost" size="icon" className="rounded-full w-10 h-10 hover:bg-secondary transition-colors border border-border/50">
                   <Settings className="w-6 h-6 text-foreground" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="bg-background border-l border-border/20 text-foreground w-full sm:max-w-md p-0 flex flex-col">
-                <SheetHeader className="p-8 border-b border-border/10">
+              <SheetContent side="right" className="bg-background border-l border-border text-foreground w-full sm:max-w-md p-0 flex flex-col shadow-2xl">
+                <SheetHeader className="p-8 border-b border-border">
                   <SheetTitle className="text-left">
                     <div className="flex items-center gap-4">
-                      <Avatar className="h-16 w-16 border-2 border-primary/30">
-                        <AvatarFallback className="bg-secondary/50 text-primary text-xl font-bold">
+                      <Avatar className="h-16 w-16 border-2 border-primary/30 shadow-md">
+                        <AvatarFallback className="bg-secondary text-primary text-xl font-bold">
                           {loggedInUser.username.substring(0, 2)}
                         </AvatarFallback>
                       </Avatar>
@@ -219,25 +219,25 @@ export default function Home() {
                 <div className="flex-1 overflow-y-auto custom-scrollbar p-8 space-y-8">
                   <div className="space-y-4">
                     <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">System Configuration</p>
-                    <div className="flex items-center justify-between p-4 bg-secondary/10 rounded-2xl border border-border/10">
+                    <div className="flex items-center justify-between p-4 bg-secondary/30 dark:bg-secondary/10 rounded-2xl border border-border">
                       <span className="text-xs font-bold uppercase tracking-widest">Console Theme</span>
                       <Button 
                         variant="outline" 
                         size="sm" 
                         onClick={toggleTheme}
-                        className="rounded-xl gap-2 font-black text-[10px] uppercase tracking-widest bg-background"
+                        className="rounded-xl gap-2 font-black text-[10px] uppercase tracking-widest bg-background shadow-sm"
                       >
                         {theme === 'dark' ? (
                           <><Moon className="w-3.5 h-3.5" /> Dark</>
                         ) : (
-                          <><Sun className="w-3.5 h-3.5" /> Light</>
+                          <><Sun className="w-3.5 h-3.5 text-orange-500" /> Light</>
                         )}
                       </Button>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-secondary/20 p-5 rounded-2xl border border-border/10">
+                    <div className="bg-secondary/40 dark:bg-secondary/20 p-5 rounded-2xl border border-border">
                       <div className="flex items-center gap-2 mb-2">
                         <Trophy className="w-4 h-4 text-accent" />
                         <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">XP Points</p>
@@ -247,7 +247,7 @@ export default function Home() {
                       </p>
                     </div>
                     
-                    <div className="bg-secondary/20 p-5 rounded-2xl border border-border/10">
+                    <div className="bg-secondary/40 dark:bg-secondary/20 p-5 rounded-2xl border border-border">
                       <div className="flex items-center gap-2 mb-2">
                         <BarChart3 className="w-4 h-4 text-primary" />
                         <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Analytics</p>
@@ -260,13 +260,13 @@ export default function Home() {
                   <div className="space-y-4">
                     <Button 
                       variant="outline"
-                      className="w-full flex items-center justify-center gap-3 h-14 bg-accent/5 hover:bg-accent hover:text-accent-foreground text-accent rounded-2xl border border-accent/10 text-[10px] font-black uppercase tracking-widest transition-all"
+                      className="w-full flex items-center justify-center gap-3 h-14 bg-accent/10 hover:bg-accent hover:text-accent-foreground text-accent rounded-2xl border border-accent/30 text-[10px] font-black uppercase tracking-widest transition-all shadow-sm"
                     >
                       <PlusCircle className="w-4 h-4" />
                       New Project
                     </Button>
 
-                    <div className="p-5 bg-card/40 rounded-2xl border border-border/10">
+                    <div className="p-5 bg-card/60 dark:bg-card/40 rounded-2xl border border-border shadow-sm">
                       <div className="flex items-center justify-between mb-4">
                         <span className="flex items-center gap-2 text-xs font-black uppercase tracking-widest italic">
                           <History className="w-4 h-4 text-primary" />
@@ -275,7 +275,7 @@ export default function Home() {
                         <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                       </div>
                       
-                      <div className="flex items-center gap-4 p-3 bg-secondary/10 rounded-xl border border-border/5">
+                      <div className="flex items-center gap-4 p-3 bg-secondary/20 dark:bg-secondary/10 rounded-xl border border-border/50">
                         <div className="w-12 h-12 rounded-lg bg-primary/20 flex items-center justify-center">
                           <MonitorPlay className="w-6 h-6 text-primary" />
                         </div>
@@ -289,7 +289,7 @@ export default function Home() {
                     <Button 
                       variant="ghost" 
                       onClick={handleLogout}
-                      className="w-full flex items-center justify-center gap-3 h-14 bg-destructive/5 hover:bg-destructive/10 text-destructive rounded-2xl border border-destructive/10 text-[10px] font-black uppercase tracking-widest transition-all mt-4"
+                      className="w-full flex items-center justify-center gap-3 h-14 bg-destructive/5 hover:bg-destructive/10 text-destructive rounded-2xl border border-destructive/20 text-[10px] font-black uppercase tracking-widest transition-all mt-4"
                     >
                       <LogOut className="w-4 h-4" />
                       Logout Console
@@ -313,7 +313,7 @@ export default function Home() {
           </div>
         </section>
 
-        <footer className="py-8 flex flex-col items-center gap-3 text-muted-foreground/10 border-t border-border/5">
+        <footer className="py-8 flex flex-col items-center gap-3 text-muted-foreground/30 border-t border-border">
           <p className="text-[7px] font-mono uppercase tracking-widest">© Connect_Plus_Consoles</p>
         </footer>
       </main>
