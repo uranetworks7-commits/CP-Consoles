@@ -31,7 +31,6 @@ export default function Home() {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check for existing session in local storage
     const savedUser = localStorage.getItem('pulse_session');
     if (savedUser) {
       setLoggedInUser(JSON.parse(savedUser));
@@ -54,7 +53,7 @@ export default function Home() {
       toast({
         variant: "destructive",
         title: "Identification Required",
-        description: "Enter your handle to verify credentials.",
+        description: "Please enter your username.",
       });
       return;
     }
@@ -62,7 +61,6 @@ export default function Home() {
     setIsLoggingIn(true);
     try {
       const dbRef = ref(rtdb);
-      // Direct check from Realtime Database
       const snapshot = await get(child(dbRef, `users/${username}`));
       
       if (snapshot.exists()) {
@@ -87,7 +85,6 @@ export default function Home() {
         });
       }
     } catch (error: any) {
-      console.error("Login Exception:", error);
       toast({
         variant: "destructive",
         title: "System Failure",
@@ -138,10 +135,10 @@ export default function Home() {
             <div className="space-y-4">
               <div className="space-y-2">
                 <label className="text-[9px] font-black uppercase tracking-[0.2em] text-primary/80 ml-1">
-                  Enter Handle
+                  Username
                 </label>
                 <Input
-                  placeholder="Username"
+                  placeholder="Enter handle"
                   value={usernameInput}
                   onChange={(e) => setUsernameInput(e.target.value)}
                   className="h-12 bg-card/10 border-border/20 focus:border-primary/50 focus:ring-primary/20 font-mono rounded-xl px-5 text-sm tracking-widest text-foreground"
@@ -167,12 +164,6 @@ export default function Home() {
                 )}
               </Button>
             </div>
-            
-            <div className="pt-4 border-t border-border/10">
-              <p className="text-[7px] font-mono text-center text-muted-foreground/30 uppercase tracking-[0.2em]">
-                Secure Operator Access
-              </p>
-            </div>
           </div>
         </div>
       </div>
@@ -193,9 +184,6 @@ export default function Home() {
                   <h1 className="text-xl font-black tracking-tighter uppercase italic text-foreground leading-none">
                     Connect Plus Console
                   </h1>
-                  <p className="text-[8px] font-mono text-primary/60 tracking-[0.2em] mt-1 uppercase">
-                    Status: Active
-                  </p>
                 </div>
               </div>
 
@@ -225,7 +213,6 @@ export default function Home() {
                       <p className="text-[10px] font-black italic tracking-tighter text-foreground">
                         {loggedInUser.username}
                       </p>
-                      <p className="text-[8px] font-mono text-muted-foreground/60">Verified_User</p>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator className="bg-border/10" />
                     <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer font-bold uppercase text-[9px] tracking-widest p-2.5">
@@ -236,12 +223,6 @@ export default function Home() {
                 </DropdownMenu>
                 
                 <div className="space-y-0.5">
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-1 h-1 bg-green-500 rounded-full animate-pulse" />
-                    <p className="text-[8px] font-mono text-muted-foreground/40 uppercase tracking-[0.2em]">
-                      Session: Secured
-                    </p>
-                  </div>
                   <p className="text-[9px] text-foreground font-black uppercase italic tracking-tighter">
                     {loggedInUser.username}
                   </p>
@@ -264,7 +245,6 @@ export default function Home() {
         </section>
 
         <footer className="py-8 flex flex-col items-center gap-3 text-muted-foreground/10 border-t border-border/5">
-          <p className="text-[7px] font-mono uppercase tracking-[0.3em]">Core_v5.0.0 // LIVE_DATA_SYNC</p>
           <p className="text-[7px] font-mono uppercase tracking-widest">© Connect_Plus_Consoles</p>
         </footer>
       </main>
