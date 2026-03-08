@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { GAMES_LIBRARY, Game } from '@/lib/games';
 import { GameCard } from '@/components/GameCard';
 import { GameLaunchPad } from '@/components/GameLaunchPad';
-import { MonitorPlay, LogOut, Cpu, Gamepad2, PlusCircle, History, Settings, Sun, Moon, ArrowLeft, Rocket, Key, CheckCircle2, BarChart3, Edit3, Save, X as CloseIcon } from 'lucide-react';
+import { MonitorPlay, LogOut, Cpu, Gamepad2, PlusCircle, History, Settings, Sun, Moon, ArrowLeft, Rocket, Key, CheckCircle2, BarChart3, Edit3, Save, X as CloseIcon, Share2, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useRTDB } from '@/firebase';
 import { ref, get, child, update, push, onValue, off } from 'firebase/database';
@@ -115,7 +115,12 @@ export default function Home() {
   useEffect(() => {
     const savedUser = localStorage.getItem('pulse_session');
     if (savedUser) {
-      setLoggedInUser(JSON.parse(savedUser));
+      const user = JSON.parse(savedUser);
+      setLoggedInUser(user);
+      if (user.theme) {
+        setTheme(user.theme);
+        document.documentElement.classList.toggle('light', user.theme === 'light');
+      }
     }
     const savedTheme = localStorage.getItem('console_theme') as 'light' | 'dark';
     if (savedTheme) {
@@ -173,6 +178,11 @@ export default function Home() {
     } catch (e) {
       toast({ variant: "destructive", title: "Error", description: "Failed to update record." });
     }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast({ title: "Data Captured", description: "Text copied to console clipboard." });
   };
 
   const handleLogin = async () => {
@@ -343,29 +353,53 @@ export default function Home() {
         </header>
         <main className="max-w-2xl mx-auto p-6 space-y-8">
           <h1 className="text-3xl font-black uppercase italic tracking-tighter">Pending Applications</h1>
-          <div className="space-y-4">
+          <div className="space-y-6">
             {pendingSubmissions.length === 0 ? (
               <div className="p-10 border border-dashed border-border rounded-3xl text-center">
                 <p className="text-muted-foreground font-bold uppercase tracking-widest text-xs italic">Queue Empty // All Systems Optimal</p>
               </div>
             ) : (
               pendingSubmissions.map((app: any) => (
-                <div key={app.id} className="p-6 bg-card border border-border rounded-3xl flex items-center justify-between shadow-lg">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center overflow-hidden border border-border">
-                      <img src={app.thumbnailUrl} className="w-full h-full object-cover" />
+                <div key={app.id} className="p-6 bg-card border border-border rounded-3xl space-y-4 shadow-lg">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="w-16 h-16 rounded-xl bg-secondary flex items-center justify-center overflow-hidden border border-border">
+                        <img src={app.thumbnailUrl} className="w-full h-full object-cover" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-black italic uppercase leading-none">{app.gameName}</h3>
+                        <p className="text-[9px] text-muted-foreground uppercase font-bold tracking-widest mt-1">{app.gameType} // BY: {app.userId}</p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="text-lg font-black italic uppercase leading-none">{app.gameName}</h3>
-                      <p className="text-[9px] text-muted-foreground uppercase font-bold tracking-widest mt-1">BY: {app.userId} // {app.gameType}</p>
+                    <Button 
+                      onClick={() => handleApproveApp(app.id)}
+                      className="bg-green-600 hover:bg-green-700 text-white rounded-xl font-black uppercase tracking-widest text-[9px] px-6 h-10 shadow-lg"
+                    >
+                      <CheckCircle2 className="w-3 h-3 mr-2" /> Approve
+                    </Button>
+                  </div>
+
+                  <div className="grid gap-3 pt-2">
+                    <div className="flex items-center justify-between p-3 bg-secondary/20 rounded-xl border border-border/50">
+                      <div className="flex-1 overflow-hidden pr-4">
+                        <p className="text-[8px] font-black uppercase text-muted-foreground tracking-widest mb-1">Engine Core URL</p>
+                        <p className="text-xs font-mono truncate text-primary">{app.gameUrl}</p>
+                      </div>
+                      <Button variant="ghost" size="icon" onClick={() => copyToClipboard(app.gameUrl)} className="rounded-lg h-8 w-8 hover:bg-primary/20">
+                        <Share2 className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
+                    
+                    <div className="flex items-center justify-between p-3 bg-secondary/20 rounded-xl border border-border/50">
+                      <div className="flex-1 overflow-hidden pr-4">
+                        <p className="text-[8px] font-black uppercase text-muted-foreground tracking-widest mb-1">Developer Credentials</p>
+                        <p className="text-xs italic text-foreground">{app.developerInfo}</p>
+                      </div>
+                      <Button variant="ghost" size="icon" onClick={() => copyToClipboard(app.developerInfo)} className="rounded-lg h-8 w-8 hover:bg-primary/20">
+                        <Share2 className="w-3.5 h-3.5" />
+                      </Button>
                     </div>
                   </div>
-                  <Button 
-                    onClick={() => handleApproveApp(app.id)}
-                    className="bg-green-600 hover:bg-green-700 text-white rounded-xl font-black uppercase tracking-widest text-[9px] px-6"
-                  >
-                    <CheckCircle2 className="w-3 h-3 mr-2" /> Approve
-                  </Button>
                 </div>
               ))
             )}
