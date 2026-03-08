@@ -1,14 +1,15 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { GAMES_LIBRARY, Game } from '@/lib/games';
 import { GameCard } from '@/components/GameCard';
 import { GameLaunchPad } from '@/components/GameLaunchPad';
-import { MonitorPlay, User, PlusCircle, LogIn, LogOut } from 'lucide-react';
+import { MonitorPlay, User, PlusCircle, LogIn, LogOut, Terminal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useAuth, useUser } from '@/firebase';
+import { useAuth, useUser, useFirestore, useDoc } from '@/firebase';
 import { signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -18,23 +19,41 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 
 export default function Home() {
   const [activeGame, setActiveGame] = useState<Game | null>(null);
+  const [usernameInput, setUsernameInput] = useState('');
+  const [isRegistering, setIsRegistering] = useState(false);
+  
   const { auth } = useAuth();
-  const { user, loading } = useUser();
+  const db = useFirestore();
+  const { user, loading: authLoading } = useUser();
   const { toast } = useToast();
+
+  const userDocRef = useMemo(() => {
+    if (!db || !user) return null;
+    return doc(db, 'users', user.uid);
+  }, [db, user]);
+
+  const { data: userData, loading: dbLoading } = useDoc(userDocRef);
+
+  const showRegistration = !!user && !userData && !dbLoading;
 
   const handleLogin = async () => {
     if (!auth) return;
     try {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
-      toast({
-        title: "Welcome Back",
-        description: "Successfully authenticated with Pulse Core.",
-      });
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -49,21 +68,36 @@ export default function Home() {
     await signOut(auth);
   };
 
-  const handleNewProject = () => {
-    if (!user) {
-      handleLogin();
-    } else {
-      toast({
-        title: "Access Denied",
-        description: "New Project creation is currently locked to Admin levels.",
+  const handleRegisterProfile = async () => {
+    if (!db || !user || !usernameInput.trim()) return;
+    
+    setIsRegistering(true);
+    try {
+      await setDoc(doc(db, 'users', user.uid), {
+        uid: user.uid,
+        username: usernameInput.trim(),
+        email: user.email,
+        photoURL: user.photoURL,
+        createdAt: serverTimestamp(),
       });
+      toast({
+        title: "Pulse ID Initialized",
+        description: `Welcome to the Nexus, ${usernameInput}.`,
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Registration Error",
+        description: "Could not initialize Pulse ID.",
+      });
+    } finally {
+      setIsRegistering(false);
     }
   };
 
   return (
     <div className="min-h-screen bg-[#0a0c10] text-foreground selection:bg-primary selection:text-primary-foreground">
       <main className="max-w-3xl mx-auto px-4 sm:px-6 py-0 space-y-6">
-        {/* Header - Fixed/Sticky */}
         <header className="sticky top-0 z-30 bg-[#0a0c10]/95 backdrop-blur-md border-b border-border/30 py-6">
           <div className="flex flex-col gap-6">
             <div className="flex items-center justify-between">
@@ -71,34 +105,41 @@ export default function Home() {
                 <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
                   <MonitorPlay className="text-white w-6 h-6" />
                 </div>
-                <h1 className="text-2xl sm:text-3xl font-black tracking-tighter uppercase italic text-foreground">
-                  Connect Pulse Consoles
-                </h1>
+                <div>
+                  <h1 className="text-2xl sm:text-3xl font-black tracking-tighter uppercase italic text-foreground leading-none">
+                    Connect Pulse Consoles
+                  </h1>
+                  {userData?.username && (
+                    <p className="text-[10px] font-mono text-accent uppercase tracking-[0.2em] mt-1 flex items-center gap-1.5">
+                      <Terminal className="w-3 h-3" />
+                      Active_Operator: {userData.username}
+                    </p>
+                  )}
+                </div>
               </div>
 
-              {/* Profile / Login */}
               <div className="flex items-center gap-2">
-                {loading ? (
+                {authLoading ? (
                   <div className="w-10 h-10 rounded-full bg-muted animate-pulse" />
                 ) : user ? (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0">
                         <Avatar className="h-10 w-10 border border-primary/20">
-                          <AvatarImage src={user.photoURL || ''} alt={user.displayName || 'User'} />
+                          <AvatarImage src={user.photoURL || ''} alt={userData?.username || 'User'} />
                           <AvatarFallback><User /></AvatarFallback>
                         </Avatar>
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-56" align="end" forceMount>
+                    <DropdownMenuContent className="w-56 bg-card border-border/40" align="end" forceMount>
                       <DropdownMenuLabel className="font-normal">
                         <div className="flex flex-col space-y-1">
-                          <p className="text-sm font-medium leading-none">{user.displayName}</p>
+                          <p className="text-sm font-medium leading-none text-foreground">{userData?.username || user.displayName}</p>
                           <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
                         </div>
                       </DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={handleLogout} className="text-destructive">
+                      <DropdownMenuSeparator className="bg-border/20" />
+                      <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:bg-destructive/10 focus:text-destructive">
                         <LogOut className="mr-2 h-4 w-4" />
                         <span>Log out</span>
                       </DropdownMenuItem>
@@ -118,10 +159,12 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Sub-Header Actions */}
             <div className="flex items-center gap-3">
               <Button 
-                onClick={handleNewProject}
+                onClick={() => {
+                  if (!user) handleLogin();
+                  else toast({ title: "Access Locked", description: "Admin level required for new builds." });
+                }}
                 className="bg-accent hover:bg-accent/90 text-accent-foreground rounded-full px-6 h-10 font-black uppercase text-[10px] tracking-widest gap-2 shadow-lg shadow-accent/10"
               >
                 <PlusCircle className="w-4 h-4" />
@@ -132,7 +175,6 @@ export default function Home() {
           </div>
         </header>
 
-        {/* Separated Game Units */}
         <section className="pb-10 pt-4">
           <div className="flex flex-col">
             {GAMES_LIBRARY.map((game) => (
@@ -145,7 +187,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Footer */}
         <footer className="py-10 flex justify-between items-center text-muted-foreground/30 border-t border-border/10">
           <p className="text-[10px] font-mono uppercase tracking-widest">NEXUS_OS_CORE v3.0</p>
           <div className="flex gap-4">
@@ -155,6 +196,42 @@ export default function Home() {
           </div>
         </footer>
       </main>
+
+      {/* Profile Setup Dialog */}
+      <Dialog open={showRegistration}>
+        <DialogContent className="sm:max-w-md bg-card border-border/50 text-foreground">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-black uppercase italic tracking-tighter">Initialize Pulse ID</DialogTitle>
+            <DialogDescription className="text-muted-foreground">
+              Welcome back to the Nexus. Please enter a unique handle to identify your console instance.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-4 py-4">
+            <div className="flex flex-col gap-2">
+              <label htmlFor="username" className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                Pulse ID Handle
+              </label>
+              <Input
+                id="username"
+                placeholder="OPERATOR_NAME"
+                value={usernameInput}
+                onChange={(e) => setUsernameInput(e.target.value)}
+                className="bg-background border-border/50 focus:ring-primary uppercase font-mono"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button 
+              type="submit" 
+              onClick={handleRegisterProfile}
+              disabled={!usernameInput.trim() || isRegistering}
+              className="w-full bg-primary hover:bg-primary/90 text-white font-black uppercase tracking-widest"
+            >
+              {isRegistering ? "Synchronizing..." : "Finalize Profile"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <GameLaunchPad 
         game={activeGame} 
