@@ -253,7 +253,7 @@ export function GameCard({ game, onLaunch, user, onAboutDev, savedGames }: GameC
       <Button 
         disabled={isLoading}
         onClick={handlePlayClick}
-        className="w-full bg-primary hover:bg-primary/90 text-white font-black text-[11px] uppercase tracking-[0.25em] h-12 rounded-2xl shadow-xl shadow-primary/20 transition-all active:scale-[0.98] border border-white/10"
+        className="w-full bg-primary hover:bg-primary/90 text-white font-black text-[11px] uppercase tracking-[0.25em] h-12 rounded-2xl shadow-xl shadow-primary/20 transition-all active:scale-[0.98] border border-white/20"
       >
         {isLoading ? (
           <div className="flex gap-2 items-center justify-center">
@@ -271,7 +271,7 @@ export function GameCard({ game, onLaunch, user, onAboutDev, savedGames }: GameC
 
       {/* Post ID Dialog */}
       <Dialog open={showIdDialog} onOpenChange={setShowIdDialog}>
-        <DialogContent className="rounded-3xl border-border bg-card/95 backdrop-blur-xl max-w-sm">
+        <DialogContent className="rounded-3xl border-border bg-card/95 backdrop-blur-xl max-w-sm [&>button]:hidden">
           <DialogHeader>
             <DialogTitle className="text-xl font-black uppercase italic tracking-tighter">Engine Identifier</DialogTitle>
           </DialogHeader>
@@ -281,9 +281,6 @@ export function GameCard({ game, onLaunch, user, onAboutDev, savedGames }: GameC
               {game.id}
             </p>
           </div>
-          <DialogFooter>
-            <Button onClick={() => setShowIdDialog(false)} className="w-full font-black uppercase tracking-widest rounded-xl">Dismiss</Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
 
@@ -320,7 +317,7 @@ export function GameCard({ game, onLaunch, user, onAboutDev, savedGames }: GameC
       <Dialog open={showReportDialog} onOpenChange={setShowReportDialog}>
         <DialogContent className="rounded-3xl border-destructive/30 bg-card/95 backdrop-blur-xl max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-xl font-black uppercase italic tracking-tighter text-destructive">Report Engine</DialogTitle>
+            <DialogTitle className="text-xl font-black uppercase italic tracking-tighter text-destructive">Report</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
