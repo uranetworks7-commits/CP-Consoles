@@ -62,7 +62,7 @@ export default function Home() {
     setIsLoggingIn(true);
     try {
       const dbRef = ref(rtdb);
-      // Direct check from Realtime Database
+      // Direct check from Realtime Database as per provided snippet
       const snapshot = await get(child(dbRef, `users/${username}`));
       
       if (snapshot.exists()) {
