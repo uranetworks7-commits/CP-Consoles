@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { GAMES_LIBRARY, Game } from '@/lib/games';
 import { GameCard } from '@/components/GameCard';
 import { GameLaunchPad } from '@/components/GameLaunchPad';
-import { MonitorPlay, LogIn, LogOut, Cpu, Gamepad2, PlusCircle } from 'lucide-react';
+import { MonitorPlay, LogIn, LogOut, Cpu, Gamepad2, PlusCircle, CircleUser, ChevronDown, ChevronUp, BarChart3, Trophy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useRTDB } from '@/firebase';
 import { ref, get, child } from 'firebase/database';
@@ -26,6 +26,8 @@ export default function Home() {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [loggedInUser, setLoggedInUser] = useState<any>(null);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [showUserStats, setShowUserStats] = useState(false);
+  const [showRecentGames, setShowRecentGames] = useState(false);
   
   const rtdb = useRTDB();
   const { toast } = useToast();
@@ -98,6 +100,8 @@ export default function Home() {
   const handleLogout = () => {
     setLoggedInUser(null);
     localStorage.removeItem('pulse_session');
+    setShowUserStats(false);
+    setShowRecentGames(false);
     toast({
       title: "Session Terminated",
       description: "Successfully logged out.",
@@ -181,6 +185,17 @@ export default function Home() {
                   <h1 className="text-xl font-black tracking-tighter uppercase italic text-foreground leading-none">
                     Connect Plus Console
                   </h1>
+                  
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setShowUserStats(!showUserStats)}
+                    className="mt-2 h-8 px-2 flex items-center gap-2 text-primary hover:bg-primary/10 rounded-lg group transition-all"
+                  >
+                    <CircleUser className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                    <span className="text-[10px] font-black uppercase tracking-widest italic">User Engine</span>
+                    {showUserStats ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                  </Button>
                 </div>
               </div>
 
@@ -192,6 +207,67 @@ export default function Home() {
                 New Project
               </Button>
             </div>
+
+            {showUserStats && (
+              <div className="bg-card/20 p-5 rounded-2xl border border-primary/20 backdrop-blur-md animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">Operator Identity</p>
+                    <p className="text-xs font-black text-primary italic uppercase tracking-tighter">{loggedInUser.username}</p>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-secondary/20 p-3 rounded-xl border border-border/10">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Trophy className="w-3 h-3 text-accent" />
+                        <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">XP Points</p>
+                      </div>
+                      <p className="text-lg font-black italic tracking-tighter text-foreground leading-none">
+                        {loggedInUser.xp || '12,450'}
+                      </p>
+                    </div>
+                    
+                    <div className="bg-secondary/20 p-3 rounded-xl border border-border/10">
+                      <div className="flex items-center gap-2 mb-1">
+                        <BarChart3 className="w-3 h-3 text-primary" />
+                        <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Analytics</p>
+                      </div>
+                      <p className="text-[10px] font-bold text-foreground">68% Win Rate</p>
+                      <p className="text-[9px] text-muted-foreground uppercase">42h Total Play</p>
+                    </div>
+                  </div>
+
+                  <div className="pt-2">
+                    <Button 
+                      variant="ghost" 
+                      onClick={() => setShowRecentGames(!showRecentGames)}
+                      className="w-full flex items-center justify-between p-3 h-auto bg-primary/5 hover:bg-primary/10 rounded-xl border border-primary/10 text-xs font-black uppercase tracking-widest italic"
+                    >
+                      <span className="flex items-center gap-2">
+                        <Gamepad2 className="w-4 h-4" />
+                        Recent Play
+                      </span>
+                      {showRecentGames ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                    </Button>
+                    
+                    {showRecentGames && (
+                      <div className="mt-3 p-3 bg-black/40 rounded-xl border border-border/10 animate-in fade-in zoom-in-95 duration-200">
+                        <p className="text-[9px] text-muted-foreground uppercase font-bold mb-2">Recent Game played:</p>
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
+                            <MonitorPlay className="w-5 h-5 text-primary" />
+                          </div>
+                          <div>
+                            <p className="text-xs font-black italic uppercase tracking-tighter">CS: Chaos Squad</p>
+                            <p className="text-[9px] text-muted-foreground uppercase">Played 2 hours ago</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="flex items-center justify-between bg-card/10 p-2.5 rounded-xl border border-border/10 backdrop-blur-md">
               <div className="flex items-center gap-3">
