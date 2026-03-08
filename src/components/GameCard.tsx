@@ -53,6 +53,10 @@ export function GameCard({ game, onLaunch, user, onAboutDev, onShowId, savedGame
     return savedGames.some(sg => sg.id === game.id);
   }, [savedGames, game.id]);
 
+  const formatK = (num: number) => {
+    return num >= 1000 ? `${(num / 1000).toFixed(1)}K` : num;
+  };
+
   const syncVotes = (newL: number, newD: number) => {
     if (!rtdb) return;
     const gameRef = ref(rtdb, `submissions/${game.id}`);
@@ -194,7 +198,7 @@ export function GameCard({ game, onLaunch, user, onAboutDev, onShowId, savedGame
               <Eye className="w-3.5 h-3.5" />
               {game.views}
             </div>
-            <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-accent/90 dark:text-accent/80">
+            <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-green-500 dark:text-accent/80">
               <MousePointer2 className="w-3.5 h-3.5" />
               {game.played}
             </div>
@@ -214,7 +218,7 @@ export function GameCard({ game, onLaunch, user, onAboutDev, onShowId, savedGame
             )}
           >
             <ThumbsUp className={cn("w-4 h-4", userVote === 'like' && "fill-current")} />
-            {likes.toLocaleString()}
+            {formatK(likes)}
           </button>
           <div className="w-px h-5 bg-border/50 self-center mx-1.5" />
           <button 
@@ -227,7 +231,7 @@ export function GameCard({ game, onLaunch, user, onAboutDev, onShowId, savedGame
             )}
           >
             <ThumbsDown className={cn("w-4 h-4", userVote === 'dislike' && "fill-current")} />
-            {dislikes.toLocaleString()}
+            {formatK(dislikes)}
           </button>
         </div>
 

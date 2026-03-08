@@ -464,7 +464,6 @@ export default function Home() {
               <Fingerprint className="text-primary w-10 h-10" />
             </div>
             <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground mb-4 italic">Engine Identifier</p>
               <div className="p-6 bg-secondary/20 rounded-2xl border border-border/50 select-all group transition-all hover:border-primary/50">
                 <p className="font-mono text-primary text-lg break-all group-hover:text-accent transition-colors">
                   {viewingPostId}
@@ -490,7 +489,7 @@ export default function Home() {
           <User className="w-5 h-5 text-primary" />
         </header>
         <main className="flex-1 flex flex-col items-center justify-center p-6 space-y-8 animate-fade-in">
-          <div className="w-full max-w-sm bg-card border border-border p-10 rounded-[3rem] shadow-2xl text-center space-y-6">
+          <div className="w-full max-sm bg-card border border-border p-10 rounded-[3rem] shadow-2xl text-center space-y-6">
             <Avatar className="h-32 w-32 mx-auto border-4 border-primary/20 shadow-xl">
               <AvatarImage src={viewingDev.profileImageUrl} />
               <AvatarFallback className="bg-secondary text-primary text-3xl font-black">DEV</AvatarFallback>
