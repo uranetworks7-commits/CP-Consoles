@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { GAMES_LIBRARY, Game } from '@/lib/games';
 import { GameCard } from '@/components/GameCard';
 import { GameLaunchPad } from '@/components/GameLaunchPad';
-import { MonitorPlay, LogIn, LogOut, Terminal, Cpu, PlusCircle } from 'lucide-react';
+import { MonitorPlay, LogIn, LogOut, Cpu, Gamepad2, PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useRTDB } from '@/firebase';
 import { ref, get, child } from 'firebase/database';
@@ -54,7 +54,7 @@ export default function Home() {
       toast({
         variant: "destructive",
         title: "Identification Required",
-        description: "Enter your username to verify credentials.",
+        description: "Enter your handle to verify credentials.",
       });
       return;
     }
@@ -62,7 +62,7 @@ export default function Home() {
     setIsLoggingIn(true);
     try {
       const dbRef = ref(rtdb);
-      // Direct check from Realtime Database exactly like provided snippet
+      // Direct check from Realtime Database
       const snapshot = await get(child(dbRef, `users/${username}`));
       
       if (snapshot.exists()) {
@@ -83,7 +83,7 @@ export default function Home() {
         toast({
           variant: "destructive",
           title: "Access Denied",
-          description: "Username not found in system records.",
+          description: "Handle not found in system records.",
         });
       }
     } catch (error: any) {
@@ -125,16 +125,13 @@ export default function Home() {
             <div className="text-center space-y-4">
               <div className="w-16 h-16 rounded-[1.5rem] bg-gradient-to-br from-primary to-accent p-[2px] mx-auto shadow-2xl shadow-primary/20">
                 <div className="w-full h-full bg-[#0a0c10] rounded-[1.4rem] flex items-center justify-center">
-                  <Terminal className="text-primary w-8 h-8" />
+                  <Gamepad2 className="text-primary w-8 h-8" />
                 </div>
               </div>
               <div className="space-y-1">
                 <h1 className="text-3xl font-black uppercase italic tracking-tighter text-foreground leading-none">
                   Login
                 </h1>
-                <p className="text-muted-foreground/60 text-[9px] font-mono uppercase tracking-[0.4em]">
-                  Realtime_Database_Verification
-                </p>
               </div>
             </div>
 
@@ -173,7 +170,7 @@ export default function Home() {
             
             <div className="pt-4 border-t border-border/10">
               <p className="text-[7px] font-mono text-center text-muted-foreground/30 uppercase tracking-[0.2em]">
-                Direct_RTDB_Handshake // Protocol_Enabled
+                System_Initialization // Connection_Locked
               </p>
             </div>
           </div>
@@ -197,7 +194,7 @@ export default function Home() {
                     Connect Plus Console
                   </h1>
                   <p className="text-[8px] font-mono text-primary/60 tracking-[0.2em] mt-1 uppercase">
-                    Operator: {loggedInUser.username}
+                    Status: Active
                   </p>
                 </div>
               </div>
@@ -228,7 +225,7 @@ export default function Home() {
                       <p className="text-[10px] font-black italic tracking-tighter text-foreground">
                         {loggedInUser.username}
                       </p>
-                      <p className="text-[8px] font-mono text-muted-foreground/60">Console_Verified_User</p>
+                      <p className="text-[8px] font-mono text-muted-foreground/60">Verified_User</p>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator className="bg-border/10" />
                     <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer font-bold uppercase text-[9px] tracking-widest p-2.5">
@@ -242,11 +239,11 @@ export default function Home() {
                   <div className="flex items-center gap-1.5">
                     <div className="w-1 h-1 bg-green-500 rounded-full animate-pulse" />
                     <p className="text-[8px] font-mono text-muted-foreground/40 uppercase tracking-[0.2em]">
-                      Status: Active
+                      Session: Secured
                     </p>
                   </div>
                   <p className="text-[9px] text-foreground font-black uppercase italic tracking-tighter">
-                    Verified Console Access
+                    {loggedInUser.username}
                   </p>
                 </div>
               </div>
@@ -267,7 +264,7 @@ export default function Home() {
         </section>
 
         <footer className="py-8 flex flex-col items-center gap-3 text-muted-foreground/10 border-t border-border/5">
-          <p className="text-[7px] font-mono uppercase tracking-[0.3em]">Core_v5.0.0 // RTDB_SYNC_ACTIVE</p>
+          <p className="text-[7px] font-mono uppercase tracking-[0.3em]">Core_v5.0.0 // LIVE_DATA_SYNC</p>
           <p className="text-[7px] font-mono uppercase tracking-widest">© Connect_Plus_Consoles</p>
         </footer>
       </main>
