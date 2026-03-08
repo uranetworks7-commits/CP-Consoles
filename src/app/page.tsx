@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { GAMES_LIBRARY, Game } from '@/lib/games';
 import { GameCard } from '@/components/GameCard';
 import { GameLaunchPad } from '@/components/GameLaunchPad';
-import { MonitorPlay, LogOut, Cpu, Gamepad2, PlusCircle, History, Settings, Sun, Moon, ArrowLeft, Rocket, Key, CheckCircle2, BarChart3, Edit3, Save, X as CloseIcon, Share2, Check, Trash2, Bookmark, User, Fingerprint } from 'lucide-react';
+import { MonitorPlay, LogOut, Cpu, Gamepad2, PlusCircle, History, Settings, Sun, Moon, ArrowLeft, Rocket, Key, CheckCircle2, BarChart3, Edit3, Save, X as CloseIcon, Share2, Check, Trash2, Bookmark, User, Fingerprint, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useRTDB } from '@/firebase';
 import { ref, get, child, update, push, onValue, off, remove } from 'firebase/database';
@@ -44,6 +44,7 @@ export default function Home() {
   const [editingApp, setEditingApp] = useState<any>(null);
   const [appToDelete, setAppToDelete] = useState<any>(null);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
 
   // RTDB Submissions State
   const [allSubmissions, setAllSubmissions] = useState<any[]>([]);
@@ -115,7 +116,7 @@ export default function Home() {
     allSubmissions.filter(s => s.userId === loggedInUser?.username), 
   [allSubmissions, loggedInUser?.username]);
 
-  // Merged games list (Static + Approved Dynamic)
+  // Merged games list (Static + Approved Dynamic) with Search filtering
   const displayGames = useMemo(() => {
     const dynamicGames = approvedSubmissions.map(sub => ({
       id: sub.id,
@@ -133,8 +134,16 @@ export default function Home() {
       profileImageUrl: sub.profileImageUrl,
       developerBio: sub.developerBio || 'System Authorized'
     }));
-    return [...GAMES_LIBRARY, ...dynamicGames];
-  }, [approvedSubmissions]);
+    const all = [...GAMES_LIBRARY, ...dynamicGames];
+    
+    if (!searchTerm.trim()) return all;
+    
+    const term = searchTerm.toLowerCase();
+    return all.filter(g => 
+      g.title.toLowerCase().includes(term) || 
+      g.category.toLowerCase().includes(term)
+    );
+  }, [approvedSubmissions, searchTerm]);
 
   useEffect(() => {
     const savedUser = localStorage.getItem('pulse_session');
@@ -743,111 +752,130 @@ export default function Home() {
 
       <main className="max-w-2xl mx-auto px-4 sm:px-6">
         <header className="sticky top-0 z-30 bg-background/95 backdrop-blur-xl border-b border-border py-5">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-                <MonitorPlay className="text-white w-6 h-6" />
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+                  <MonitorPlay className="text-white w-6 h-6" />
+                </div>
+                <h1 className="text-xl font-black tracking-tighter uppercase italic text-foreground leading-none">Connect Plus Console</h1>
               </div>
-              <h1 className="text-xl font-black tracking-tighter uppercase italic text-foreground leading-none">Connect Plus Console</h1>
-            </div>
 
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="rounded-full w-10 h-10 border border-border/50"
-                  onPointerDown={startLongPress}
-                  onPointerUp={endLongPress}
-                  onPointerLeave={endLongPress}
-                >
-                  <Settings className="w-6 h-6 text-foreground" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="bg-background w-full sm:max-w-md p-0 flex flex-col shadow-2xl">
-                <SheetHeader className="p-8 border-b border-border">
-                  <SheetTitle>
-                    <div 
-                      className="flex items-center gap-4 cursor-pointer group hover:opacity-80 transition-opacity"
-                      onClick={() => setShowUserAnalytics(true)}
-                    >
-                      <Avatar className="h-16 w-16 border-2 border-primary/30 group-hover:border-primary">
-                        <AvatarImage src={loggedInUser.profileImageUrl} />
-                        <AvatarFallback className="bg-secondary text-primary text-xl font-bold">{loggedInUser.username.substring(0, 2)}</AvatarFallback>
-                      </Avatar>
-                      <div className="text-left">
-                        <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest italic mb-1">Identity</p>
-                        <p className="text-2xl font-black italic tracking-tighter text-foreground leading-none">{loggedInUser.username}</p>
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="rounded-full w-10 h-10 border border-border/50"
+                    onPointerDown={startLongPress}
+                    onPointerUp={endLongPress}
+                    onPointerLeave={endLongPress}
+                  >
+                    <Settings className="w-6 h-6 text-foreground" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="bg-background w-full sm:max-w-md p-0 flex flex-col shadow-2xl">
+                  <SheetHeader className="p-8 border-b border-border">
+                    <SheetTitle>
+                      <div 
+                        className="flex items-center gap-4 cursor-pointer group hover:opacity-80 transition-opacity"
+                        onClick={() => setShowUserAnalytics(true)}
+                      >
+                        <Avatar className="h-16 w-16 border-2 border-primary/30 group-hover:border-primary">
+                          <AvatarImage src={loggedInUser.profileImageUrl} />
+                          <AvatarFallback className="bg-secondary text-primary text-xl font-bold">{loggedInUser.username.substring(0, 2)}</AvatarFallback>
+                        </Avatar>
+                        <div className="text-left">
+                          <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest italic mb-1">Identity</p>
+                          <p className="text-2xl font-black italic tracking-tighter text-foreground leading-none">{loggedInUser.username}</p>
+                        </div>
+                      </div>
+                    </SheetTitle>
+                  </SheetHeader>
+                  <div className="flex-1 overflow-y-auto p-8 space-y-8">
+                    <div className="space-y-4">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">System Setting</p>
+                      <div className="flex items-center justify-between p-4 bg-secondary/30 rounded-2xl border border-border">
+                        <span className="text-xs font-bold uppercase tracking-widest">Theme</span>
+                        <Button variant="outline" size="sm" onClick={toggleTheme} className="rounded-xl gap-2 font-black text-[10px] uppercase tracking-widest">
+                          {theme === 'dark' ? <><Moon className="w-3.5 h-3.5" /> Dark</> : <><Sun className="w-3.5 h-3.5 text-orange-500" /> Light</>}
+                        </Button>
                       </div>
                     </div>
-                  </SheetTitle>
-                </SheetHeader>
-                <div className="flex-1 overflow-y-auto p-8 space-y-8">
-                  <div className="space-y-4">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">System Setting</p>
-                    <div className="flex items-center justify-between p-4 bg-secondary/30 rounded-2xl border border-border">
-                      <span className="text-xs font-bold uppercase tracking-widest">Theme</span>
-                      <Button variant="outline" size="sm" onClick={toggleTheme} className="rounded-xl gap-2 font-black text-[10px] uppercase tracking-widest">
-                        {theme === 'dark' ? <><Moon className="w-3.5 h-3.5" /> Dark</> : <><Sun className="w-3.5 h-3.5 text-orange-500" /> Light</>}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-secondary/40 p-5 rounded-2xl border border-border">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">XP Points</p>
+                        <p className="text-2xl font-black italic tracking-tighter text-foreground">{loggedInUser.xp || '0'}</p>
+                      </div>
+                      <button 
+                        onClick={() => setShowUserAnalytics(true)}
+                        className="bg-secondary/40 p-5 rounded-2xl border border-border text-left hover:border-primary/50 transition-colors group"
+                      >
+                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1 group-hover:text-primary">Analytics</p>
+                        <p className="text-xs font-black italic uppercase leading-none">{userSubmissions.length} Apps</p>
+                      </button>
+                    </div>
+                    <div className="space-y-4">
+                      <Button 
+                        onClick={() => setShowSavedGames(true)} 
+                        variant="outline"
+                        className="w-full h-14 bg-secondary/20 hover:bg-primary/10 text-foreground rounded-2xl border-border text-[10px] font-black uppercase tracking-widest"
+                      >
+                        <Bookmark className="w-4 h-4 mr-2" /> Saved Items
+                      </Button>
+                      <Button 
+                        onClick={() => setShowNewProject(true)} 
+                        className="w-full h-14 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl border-none text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20"
+                      >
+                        <PlusCircle className="w-4 h-4 mr-2" /> New Application
+                      </Button>
+                      <div className="p-5 bg-card rounded-2xl border border-border shadow-sm">
+                        <p className="text-xs font-black uppercase tracking-widest italic flex items-center gap-2 mb-4">
+                          <History className="w-4 h-4 text-primary" /> Recent Play
+                        </p>
+                        <div className="p-3 bg-secondary/20 rounded-xl border border-border/50 flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
+                            <MonitorPlay className="w-5 h-5 text-primary" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-black italic uppercase">{loggedInUser.recentPlayed?.title || 'No Activity'}</p>
+                            <p className="text-[8px] text-muted-foreground uppercase">{loggedInUser.recentPlayed?.timestamp ? `Played ${new Date(loggedInUser.recentPlayed.timestamp).toLocaleTimeString()}` : 'Ready'}</p>
+                          </div>
+                        </div>
+                      </div>
+                      <Button variant="ghost" onClick={handleLogout} className="w-full h-14 bg-destructive/5 text-destructive rounded-2xl border border-destructive/20 text-[10px] font-black uppercase tracking-widest">
+                        <LogOut className="w-4 h-4 mr-2" /> Logout Console
                       </Button>
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-secondary/40 p-5 rounded-2xl border border-border">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">XP Points</p>
-                      <p className="text-2xl font-black italic tracking-tighter text-foreground">{loggedInUser.xp || '0'}</p>
-                    </div>
-                    <button 
-                      onClick={() => setShowUserAnalytics(true)}
-                      className="bg-secondary/40 p-5 rounded-2xl border border-border text-left hover:border-primary/50 transition-colors group"
-                    >
-                      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1 group-hover:text-primary">Analytics</p>
-                      <p className="text-xs font-black italic uppercase leading-none">{userSubmissions.length} Apps</p>
-                    </button>
-                  </div>
-                  <div className="space-y-4">
-                    <Button 
-                      onClick={() => setShowSavedGames(true)} 
-                      variant="outline"
-                      className="w-full h-14 bg-secondary/20 hover:bg-primary/10 text-foreground rounded-2xl border-border text-[10px] font-black uppercase tracking-widest"
-                    >
-                      <Bookmark className="w-4 h-4 mr-2" /> Saved Items
-                    </Button>
-                    <Button 
-                      onClick={() => setShowNewProject(true)} 
-                      className="w-full h-14 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl border-none text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20"
-                    >
-                      <PlusCircle className="w-4 h-4 mr-2" /> New Application
-                    </Button>
-                    <div className="p-5 bg-card rounded-2xl border border-border shadow-sm">
-                      <p className="text-xs font-black uppercase tracking-widest italic flex items-center gap-2 mb-4">
-                        <History className="w-4 h-4 text-primary" /> Recent Play
-                      </p>
-                      <div className="p-3 bg-secondary/20 rounded-xl border border-border/50 flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
-                          <MonitorPlay className="w-5 h-5 text-primary" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-black italic uppercase">{loggedInUser.recentPlayed?.title || 'No Activity'}</p>
-                          <p className="text-[8px] text-muted-foreground uppercase">{loggedInUser.recentPlayed?.timestamp ? `Played ${new Date(loggedInUser.recentPlayed.timestamp).toLocaleTimeString()}` : 'Ready'}</p>
-                        </div>
-                      </div>
-                    </div>
-                    <Button variant="ghost" onClick={handleLogout} className="w-full h-14 bg-destructive/5 text-destructive rounded-2xl border border-destructive/20 text-[10px] font-black uppercase tracking-widest">
-                      <LogOut className="w-4 h-4 mr-2" /> Logout Console
-                    </Button>
-                  </div>
-                </div>
-              </SheetContent>
-            </Sheet>
+                </SheetContent>
+              </Sheet>
+            </div>
+            
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input 
+                placeholder="Search Application" 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="h-12 pl-11 bg-secondary/10 border-border rounded-xl focus:border-primary/50 text-sm font-bold uppercase tracking-wider italic"
+              />
+            </div>
           </div>
         </header>
 
         <section className="pb-20 space-y-6 pt-6">
           <div className="grid gap-6">
-            {displayGames.map((game) => (
-              <GameCard key={game.id} game={game} onLaunch={handleLaunchGame} user={loggedInUser} onAboutDev={setViewingDev} onShowId={setViewingPostId} savedGames={savedGames} />
-            ))}
+            {displayGames.length > 0 ? (
+              displayGames.map((game) => (
+                <GameCard key={game.id} game={game} onLaunch={handleLaunchGame} user={loggedInUser} onAboutDev={setViewingDev} onShowId={setViewingPostId} savedGames={savedGames} />
+              ))
+            ) : (
+              <div className="py-20 text-center space-y-4">
+                <Search className="w-12 h-12 text-muted-foreground/30 mx-auto" />
+                <p className="text-muted-foreground font-black uppercase italic tracking-widest text-xs">No Engines Found // Match Filter Failed</p>
+              </div>
+            )}
           </div>
         </section>
 

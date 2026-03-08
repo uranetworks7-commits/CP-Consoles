@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { Game } from '@/lib/games';
-import { Eye, MousePointer2, ThumbsUp, ThumbsDown, Play, Share2, MoreVertical, Bookmark, User, Info, AlertTriangle, MessageSquare, Fingerprint, Send } from 'lucide-react';
+import { Eye, MousePointer2, ThumbsUp, ThumbsDown, Play, Share2, MoreVertical, Bookmark, User, AlertTriangle, MessageSquare, Fingerprint } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState, useMemo } from 'react';
 import { cn } from '@/lib/utils';
@@ -235,20 +235,20 @@ export function GameCard({ game, onLaunch, user, onAboutDev, onShowId, savedGame
           </button>
         </div>
 
-        <div className="flex items-center justify-center gap-6 px-4 py-1">
+        <div className="flex items-center justify-center gap-6 px-4 py-2.5 bg-secondary/20 rounded-2xl border border-border/40">
           <button 
             onClick={() => setShowFeedbackDialog(true)}
-            className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-accent transition-colors"
+            className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-accent transition-colors group/btn"
           >
-            <MessageSquare className="w-3.5 h-3.5" />
+            <MessageSquare className="w-3.5 h-3.5 transition-transform group-hover/btn:scale-110" />
             Feedback
           </button>
-          <div className="w-1 h-1 rounded-full bg-border" />
+          <div className="w-px h-3 bg-border/50" />
           <button 
             onClick={() => setShowReportDialog(true)}
-            className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-destructive transition-colors"
+            className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-destructive transition-colors group/btn"
           >
-            <AlertTriangle className="w-3.5 h-3.5" />
+            <AlertTriangle className="w-3.5 h-3.5 transition-transform group-hover/btn:scale-110" />
             Report
           </button>
         </div>
@@ -286,7 +286,7 @@ export function GameCard({ game, onLaunch, user, onAboutDev, onShowId, savedGame
                 placeholder="Transmitting feedback..." 
                 value={feedback} 
                 onChange={(e) => setFeedback(e.target.value)}
-                className="rounded-xl bg-secondary/10"
+                className="rounded-xl bg-secondary/10 h-12 border-border focus:border-accent"
               />
             </div>
           </div>
@@ -315,7 +315,7 @@ export function GameCard({ game, onLaunch, user, onAboutDev, onShowId, savedGame
                 placeholder="Specify violation..." 
                 value={reportReason} 
                 onChange={(e) => setReportReason(e.target.value)}
-                className="rounded-xl bg-secondary/10"
+                className="rounded-xl bg-secondary/10 h-12 border-border focus:border-destructive"
               />
             </div>
           </div>
