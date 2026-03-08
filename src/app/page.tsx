@@ -1,22 +1,15 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
 import { GAMES_LIBRARY, Game } from '@/lib/games';
 import { GameCard } from '@/components/GameCard';
 import { GameLaunchPad } from '@/components/GameLaunchPad';
-import { MonitorPlay, LogIn, LogOut, Cpu, Gamepad2, PlusCircle, CircleUser, ChevronDown, ChevronUp, BarChart3, Trophy } from 'lucide-react';
+import { MonitorPlay, LogIn, LogOut, Cpu, Gamepad2, PlusCircle, ChevronDown, ChevronUp, BarChart3, Trophy, History } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useRTDB } from '@/firebase';
 import { ref, get, child } from 'firebase/database';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 
@@ -142,7 +135,7 @@ export default function Home() {
                   placeholder="Enter Username"
                   value={usernameInput}
                   onChange={(e) => setUsernameInput(e.target.value)}
-                  className="h-12 bg-card/10 border-border/20 focus:border-primary/50 focus:ring-primary/20 font-mono rounded-xl px-5 text-sm tracking-widest text-foreground"
+                  className="h-12 bg-card/10 border-border/20 focus:border-primary/50 focus:ring-primary/20 rounded-xl px-5 text-sm text-foreground"
                 />
               </div>
 
@@ -175,28 +168,15 @@ export default function Home() {
     <div className="min-h-screen bg-[#0a0c10] text-foreground selection:bg-primary selection:text-primary-foreground">
       <main className="max-w-2xl mx-auto px-4 sm:px-6 py-0">
         <header className="sticky top-0 z-30 bg-[#0a0c10]/95 backdrop-blur-xl border-b border-border/20 py-5">
-          <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-xl shadow-primary/20">
                   <MonitorPlay className="text-white w-6 h-6" />
                 </div>
-                <div>
-                  <h1 className="text-xl font-black tracking-tighter uppercase italic text-foreground leading-none">
-                    Connect Plus Console
-                  </h1>
-                  
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => setShowUserStats(!showUserStats)}
-                    className="mt-2 h-8 px-2 flex items-center gap-2 text-primary hover:bg-primary/10 rounded-lg group transition-all"
-                  >
-                    <CircleUser className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                    <span className="text-[10px] font-black uppercase tracking-widest italic">User Engine</span>
-                    {showUserStats ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                  </Button>
-                </div>
+                <h1 className="text-xl font-black tracking-tighter uppercase italic text-foreground leading-none">
+                  Connect Plus Console
+                </h1>
               </div>
 
               <Button 
@@ -208,14 +188,26 @@ export default function Home() {
               </Button>
             </div>
 
-            {showUserStats && (
-              <div className="bg-card/20 p-5 rounded-2xl border border-primary/20 backdrop-blur-md animate-in fade-in slide-in-from-top-2 duration-300">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">Operator Identity</p>
-                    <p className="text-xs font-black text-primary italic uppercase tracking-tighter">{loggedInUser.username}</p>
-                  </div>
-                  
+            {/* Unified Profile Section */}
+            <div className="space-y-3">
+              <div 
+                onClick={() => setShowUserStats(!showUserStats)}
+                className="flex items-center gap-4 p-3 rounded-2xl bg-card/10 border border-border/10 cursor-pointer hover:bg-card/20 transition-all group"
+              >
+                <Avatar className="h-10 w-10 border border-primary/20 group-hover:border-primary/50 transition-colors">
+                  <AvatarFallback className="bg-secondary/50 text-primary text-[11px] font-bold">
+                    {loggedInUser.username.substring(0, 2)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <p className="text-[9px] text-muted-foreground uppercase font-black tracking-widest italic leading-none mb-1">User Identity</p>
+                  <p className="text-sm font-black italic tracking-tighter text-foreground leading-none">{loggedInUser.username}</p>
+                </div>
+                {showUserStats ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+              </div>
+
+              {showUserStats && (
+                <div className="bg-card/20 p-5 rounded-2xl border border-primary/20 backdrop-blur-md animate-in fade-in slide-in-from-top-2 duration-300 space-y-5">
                   <div className="grid grid-cols-2 gap-3">
                     <div className="bg-secondary/20 p-3 rounded-xl border border-border/10">
                       <div className="flex items-center gap-2 mb-1">
@@ -237,21 +229,24 @@ export default function Home() {
                     </div>
                   </div>
 
-                  <div className="pt-2">
+                  <div className="space-y-3">
                     <Button 
                       variant="ghost" 
-                      onClick={() => setShowRecentGames(!showRecentGames)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowRecentGames(!showRecentGames);
+                      }}
                       className="w-full flex items-center justify-between p-3 h-auto bg-primary/5 hover:bg-primary/10 rounded-xl border border-primary/10 text-xs font-black uppercase tracking-widest italic"
                     >
                       <span className="flex items-center gap-2">
-                        <Gamepad2 className="w-4 h-4" />
+                        <History className="w-4 h-4" />
                         Recent Play
                       </span>
                       {showRecentGames ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                     </Button>
                     
                     {showRecentGames && (
-                      <div className="mt-3 p-3 bg-black/40 rounded-xl border border-border/10 animate-in fade-in zoom-in-95 duration-200">
+                      <div className="p-3 bg-black/40 rounded-xl border border-border/10 animate-in fade-in zoom-in-95 duration-200">
                         <p className="text-[9px] text-muted-foreground uppercase font-bold mb-2">Recent Game played:</p>
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
@@ -264,43 +259,18 @@ export default function Home() {
                         </div>
                       </div>
                     )}
+
+                    <Button 
+                      variant="ghost" 
+                      onClick={handleLogout}
+                      className="w-full flex items-center justify-center gap-2 h-10 bg-destructive/5 hover:bg-destructive/10 text-destructive rounded-xl border border-destructive/10 text-[9px] font-black uppercase tracking-widest"
+                    >
+                      <LogOut className="w-3.5 h-3.5" />
+                      Logout Console
+                    </Button>
                   </div>
                 </div>
-              </div>
-            )}
-
-            <div className="flex items-center justify-between bg-card/10 p-2.5 rounded-xl border border-border/10 backdrop-blur-md">
-              <div className="flex items-center gap-3">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="relative h-9 w-9 rounded-xl p-0 overflow-hidden border border-primary/20 hover:border-primary">
-                      <Avatar className="h-full w-full rounded-none">
-                        <AvatarFallback className="bg-secondary/50 rounded-none text-primary text-[10px] font-bold">
-                          {loggedInUser.username.substring(0, 2)}
-                        </AvatarFallback>
-                      </Avatar>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-56 bg-[#0a0c10] border-border/30 rounded-xl p-1 mt-2" align="start">
-                    <DropdownMenuLabel className="p-3">
-                      <p className="text-[10px] font-black italic tracking-tighter text-foreground">
-                        {loggedInUser.username}
-                      </p>
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator className="bg-border/10" />
-                    <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer font-bold uppercase text-[9px] tracking-widest p-2.5">
-                      <LogOut className="mr-2 h-3.5 w-3.5" />
-                      Logout
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                
-                <div className="space-y-0.5">
-                  <p className="text-[9px] text-foreground font-black italic tracking-tighter">
-                    {loggedInUser.username}
-                  </p>
-                </div>
-              </div>
+              )}
             </div>
           </div>
         </header>
