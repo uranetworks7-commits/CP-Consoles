@@ -81,7 +81,7 @@ export default function Home() {
         toast({
           variant: "destructive",
           title: "Access Denied",
-          description: "Handle not found in system records.",
+          description: "username is not found in our system records",
         });
       }
     } catch (error: any) {
@@ -134,11 +134,8 @@ export default function Home() {
 
             <div className="space-y-4">
               <div className="space-y-2">
-                <label className="text-[9px] font-black uppercase tracking-[0.2em] text-primary/80 ml-1">
-                  Username
-                </label>
                 <Input
-                  placeholder="Enter handle"
+                  placeholder="Enter Username"
                   value={usernameInput}
                   onChange={(e) => setUsernameInput(e.target.value)}
                   className="h-12 bg-card/10 border-border/20 focus:border-primary/50 focus:ring-primary/20 font-mono rounded-xl px-5 text-sm tracking-widest text-foreground"
@@ -223,7 +220,7 @@ export default function Home() {
                 </DropdownMenu>
                 
                 <div className="space-y-0.5">
-                  <p className="text-[9px] text-foreground font-black uppercase italic tracking-tighter">
+                  <p className="text-[9px] text-foreground font-black italic tracking-tighter">
                     {loggedInUser.username}
                   </p>
                 </div>
