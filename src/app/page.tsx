@@ -25,8 +25,8 @@ export default function Home() {
           </div>
         </header>
 
-        {/* Line by Line Game List */}
-        <section className="bg-card/10 rounded-2xl border border-border/30 overflow-hidden shadow-2xl pb-10">
+        {/* Separated Game Units */}
+        <section className="pb-10">
           <div className="flex flex-col">
             {GAMES_LIBRARY.map((game) => (
               <GameCard 

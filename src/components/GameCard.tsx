@@ -53,7 +53,7 @@ export function GameCard({ game, onLaunch }: GameCardProps) {
 
   return (
     <div 
-      className="group flex flex-col bg-card/10 hover:bg-card/20 border-b border-border/20 transition-all duration-200 p-5 gap-5"
+      className="group flex flex-col bg-card/10 hover:bg-card/20 border border-border/40 rounded-2xl transition-all duration-200 p-5 gap-5 mb-6 last:mb-0 shadow-sm"
     >
       {/* Row 1: Preview + Title + Metrics */}
       <div className="flex items-center gap-4">
