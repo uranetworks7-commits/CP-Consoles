@@ -19,7 +19,7 @@ export default function Home() {
             <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
               <MonitorPlay className="text-white w-6 h-6" />
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tighter uppercase italic">
+            <h1 className="text-2xl sm:text-3xl font-black tracking-tighter uppercase italic text-foreground">
               Connect Pulse Consoles
             </h1>
           </div>
