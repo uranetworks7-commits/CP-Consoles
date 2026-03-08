@@ -1,11 +1,10 @@
-
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { GAMES_LIBRARY, Game } from '@/lib/games';
 import { GameCard } from '@/components/GameCard';
 import { GameLaunchPad } from '@/components/GameLaunchPad';
-import { MonitorPlay, LogOut, Cpu, Gamepad2, PlusCircle, History, Settings, Sun, Moon, ArrowLeft, Rocket, Key, CheckCircle2 } from 'lucide-react';
+import { MonitorPlay, LogOut, Cpu, Gamepad2, PlusCircle, History, Settings, Sun, Moon, ArrowLeft, Rocket, Key, CheckCircle2, BarChart3, Edit3, Save, X as CloseIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useRTDB } from '@/firebase';
 import { ref, get, child, update, push, onValue, off } from 'firebase/database';
@@ -36,7 +35,9 @@ export default function Home() {
   const [isInitialized, setIsInitialized] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const [showNewProject, setShowNewProject] = useState(false);
+  const [showUserAnalytics, setShowUserAnalytics] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [editingApp, setEditingApp] = useState<any>(null);
 
   // RTDB Submissions State
   const [allSubmissions, setAllSubmissions] = useState<any[]>([]);
@@ -102,10 +103,10 @@ export default function Home() {
       thumbnail: sub.thumbnailUrl || 'https://picsum.photos/seed/app/600/400',
       category: sub.gameType,
       players: 'Online',
-      views: 'New',
-      played: '0',
-      likes: 0,
-      dislikes: 0
+      views: sub.views || '0',
+      played: sub.played || '0',
+      likes: sub.likes || 0,
+      dislikes: sub.dislikes || 0
     }));
     return [...GAMES_LIBRARY, ...dynamicGames];
   }, [approvedSubmissions]);
@@ -211,6 +212,7 @@ export default function Home() {
     setLoggedInUser(null);
     localStorage.removeItem('pulse_session');
     setShowNewProject(false);
+    setShowUserAnalytics(false);
     setIsAdminMode(false);
     toast({ title: "Session Terminated", description: "Successfully logged out." });
   };
@@ -228,6 +230,17 @@ export default function Home() {
         const updatedUser = { ...loggedInUser, ...updates };
         setLoggedInUser(updatedUser);
         localStorage.setItem('pulse_session', JSON.stringify(updatedUser));
+        
+        // Update views/plays for dynamic apps
+        const submission = allSubmissions.find(s => s.id === game.id);
+        if (submission) {
+          const currentPlayed = parseInt(submission.played || "0");
+          const currentViews = parseInt(submission.views || "0");
+          await update(ref(rtdb, `submissions/${game.id}`), {
+            played: (currentPlayed + 1).toString(),
+            views: (currentViews + 1).toString()
+          });
+        }
       } catch (err) {
         console.error("Failed to sync play session:", err);
       }
@@ -248,7 +261,11 @@ export default function Home() {
         ...formData,
         userId: loggedInUser.username,
         status: 'under_review',
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        likes: 0,
+        dislikes: 0,
+        views: "0",
+        played: "0"
       });
       toast({ title: "App Published", description: "Your App under Review." });
       setFormData({ profileImageUrl: '', gameName: '', gameType: '', gameUrl: '', thumbnailUrl: '', developerInfo: '' });
@@ -257,6 +274,18 @@ export default function Home() {
       toast({ variant: "destructive", title: "Publish Failure", description: "Failed to upload engine." });
     } finally {
       setIsPublishing(false);
+    }
+  };
+
+  const handleUpdateApp = async () => {
+    if (!rtdb || !editingApp) return;
+    try {
+      const { id, ...data } = editingApp;
+      await update(ref(rtdb, `submissions/${id}`), data);
+      toast({ title: "App Updated", description: "System records modified successfully." });
+      setEditingApp(null);
+    } catch (e) {
+      toast({ variant: "destructive", title: "Update Failure", description: "Failed to update engine parameters." });
     }
   };
 
@@ -392,6 +421,105 @@ export default function Home() {
     );
   }
 
+  if (showUserAnalytics) {
+    return (
+      <div className="min-h-screen bg-background animate-fade-in">
+        <header className="sticky top-0 z-30 bg-background/95 backdrop-blur-xl border-b border-border py-4 px-6 flex items-center justify-between">
+          <Button variant="ghost" size="sm" onClick={() => setShowUserAnalytics(false)} className="rounded-xl gap-2 font-black uppercase tracking-widest text-[10px]">
+            <ArrowLeft className="w-4 h-4" /> Back to Console
+          </Button>
+          <BarChart3 className="w-5 h-5 text-accent" />
+        </header>
+        <main className="max-w-2xl mx-auto p-6 space-y-8 pb-32">
+          <h1 className="text-3xl font-black uppercase italic tracking-tighter">System Analytics</h1>
+          <div className="space-y-4">
+            {userSubmissions.length === 0 ? (
+              <div className="p-10 border border-dashed border-border rounded-3xl text-center">
+                <p className="text-muted-foreground font-bold uppercase tracking-widest text-xs italic">No Records Found // Start a New Project</p>
+              </div>
+            ) : (
+              userSubmissions.map((app: any) => (
+                <div key={app.id} className="p-6 bg-card border border-border rounded-3xl space-y-4 shadow-lg">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="w-14 h-14 rounded-xl bg-secondary overflow-hidden border border-border">
+                        <img src={app.thumbnailUrl} className="w-full h-full object-cover" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-black italic uppercase leading-none">{app.gameName}</h3>
+                        <span className={cn(
+                          "text-[8px] px-2 py-0.5 rounded-full uppercase font-black tracking-widest border mt-1 inline-block",
+                          app.status === 'approved' ? "text-green-500 border-green-500/30 bg-green-500/10" : "text-yellow-500 border-yellow-500/30 bg-yellow-500/10"
+                        )}>
+                          {app.status === 'approved' ? 'Published' : 'Under Review'}
+                        </span>
+                      </div>
+                    </div>
+                    <Button variant="ghost" size="icon" onClick={() => setEditingApp(app)} className="rounded-xl bg-secondary/30 hover:bg-primary/20 hover:text-primary">
+                      <Edit3 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="p-3 bg-secondary/20 rounded-xl border border-border/50 text-center">
+                      <p className="text-[8px] font-black uppercase text-muted-foreground tracking-widest">Likes</p>
+                      <p className="text-sm font-black italic">{app.likes || 0}</p>
+                    </div>
+                    <div className="p-3 bg-secondary/20 rounded-xl border border-border/50 text-center">
+                      <p className="text-[8px] font-black uppercase text-muted-foreground tracking-widest">Views</p>
+                      <p className="text-sm font-black italic">{app.views || '0'}</p>
+                    </div>
+                    <div className="p-3 bg-secondary/20 rounded-xl border border-border/50 text-center">
+                      <p className="text-[8px] font-black uppercase text-muted-foreground tracking-widest">Played</p>
+                      <p className="text-sm font-black italic">{app.played || '0'}</p>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </main>
+
+        <ShadDialog open={!!editingApp} onOpenChange={(open) => !open && setEditingApp(null)}>
+          <ShadDialogContent className="rounded-3xl border-border bg-card/95 backdrop-blur-xl max-w-lg">
+            <ShadDialogHeader>
+              <ShadDialogTitle className="text-xl font-black uppercase italic tracking-tighter">Modify Application</ShadDialogTitle>
+            </ShadDialogHeader>
+            <div className="space-y-4 py-4 max-h-[70vh] overflow-y-auto custom-scrollbar px-1">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Game Name (Max 12)</Label>
+                  <Input value={editingApp?.gameName || ''} maxLength={12} onChange={(e) => setEditingApp({...editingApp, gameName: e.target.value})} className="rounded-xl bg-secondary/20" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Classification</Label>
+                  <Input value={editingApp?.gameType || ''} onChange={(e) => setEditingApp({...editingApp, gameType: e.target.value})} className="rounded-xl bg-secondary/20" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">App Core URL</Label>
+                <Input value={editingApp?.gameUrl || ''} onChange={(e) => setEditingApp({...editingApp, gameUrl: e.target.value})} className="rounded-xl bg-secondary/20" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Thumbnail URL</Label>
+                <Input value={editingApp?.thumbnailUrl || ''} onChange={(e) => setEditingApp({...editingApp, thumbnailUrl: e.target.value})} className="rounded-xl bg-secondary/20" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Developer Bio (Max 20)</Label>
+                <Input value={editingApp?.developerInfo || ''} maxLength={20} onChange={(e) => setEditingApp({...editingApp, developerInfo: e.target.value})} className="rounded-xl bg-secondary/20" />
+              </div>
+            </div>
+            <ShadDialogFooter>
+              <Button onClick={handleUpdateApp} className="w-full bg-primary hover:bg-primary/90 text-white font-black uppercase tracking-widest rounded-xl">
+                <Save className="w-4 h-4 mr-2" /> Save Protocol Changes
+              </Button>
+            </ShadDialogFooter>
+          </ShadDialogContent>
+        </ShadDialog>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <ShadDialog open={showAdminKeyDialog} onOpenChange={setShowAdminKeyDialog}>
@@ -467,10 +595,13 @@ export default function Home() {
                       <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">XP Points</p>
                       <p className="text-2xl font-black italic tracking-tighter text-foreground">{loggedInUser.xp || '0'}</p>
                     </div>
-                    <div className="bg-secondary/40 p-5 rounded-2xl border border-border">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Analytics</p>
+                    <button 
+                      onClick={() => setShowUserAnalytics(true)}
+                      className="bg-secondary/40 p-5 rounded-2xl border border-border text-left hover:border-primary/50 transition-colors group"
+                    >
+                      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1 group-hover:text-primary">Analytics</p>
                       <p className="text-xs font-black italic uppercase leading-none">{userSubmissions.length} Apps</p>
-                    </div>
+                    </button>
                   </div>
                   <div className="space-y-4">
                     <Button variant="outline" onClick={() => setShowNewProject(true)} className="w-full h-14 bg-primary/10 hover:bg-primary hover:text-primary-foreground text-primary rounded-2xl border border-primary/30 text-[10px] font-black uppercase tracking-widest">
