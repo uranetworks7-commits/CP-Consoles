@@ -357,7 +357,7 @@ export default function Home() {
 
   if (!loggedInUser) return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
-      <div className="w-full max-w-md space-y-8 bg-card/40 dark:bg-card/20 p-10 rounded-[2.5rem] border border-border shadow-2xl backdrop-blur-md relative overflow-hidden">
+      <div className="w-full max-md space-y-8 bg-card/40 dark:bg-card/20 p-10 rounded-[2.5rem] border border-border shadow-2xl backdrop-blur-md relative overflow-hidden">
         <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/10 rounded-full blur-3xl" />
         <div className="relative space-y-8">
           <div className="text-center space-y-4">

@@ -248,9 +248,9 @@ export function GameCard({ game, onLaunch, user, onAboutDev, onShowId, savedGame
           
           <button 
             onClick={() => setShowReportDialog(true)}
-            className="px-4 py-2.5 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 hover:text-destructive transition-colors group/btn"
+            className="px-4 py-2.5 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-destructive hover:opacity-80 transition-all group/btn"
           >
-            <AlertTriangle className="w-3.5 h-3.5 transition-transform group-hover/btn:scale-110" />
+            <AlertTriangle className="w-3.5 h-3.5 text-destructive transition-transform group-hover/btn:scale-110" />
             Report
           </button>
         </div>
