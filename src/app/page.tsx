@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from 'react';
@@ -103,38 +104,36 @@ export default function Home() {
     return () => off(savedRef, 'value', unsubscribe);
   }, [rtdb, loggedInUser?.username]);
 
-  // Derived filtered lists
-  const approvedSubmissions = useMemo(() => 
-    allSubmissions.filter(s => s.status === 'approved'), 
-  [allSubmissions]);
-
-  const pendingSubmissions = useMemo(() => 
-    allSubmissions.filter(s => s.status === 'under_review'), 
-  [allSubmissions]);
-
-  const userSubmissions = useMemo(() => 
-    allSubmissions.filter(s => s.userId === loggedInUser?.username), 
-  [allSubmissions, loggedInUser?.username]);
-
-  // Merged games list (Static + Approved Dynamic) with Search filtering
+  // Derived filtered lists with RANDOM sorting
   const displayGames = useMemo(() => {
-    const dynamicGames = approvedSubmissions.map(sub => ({
-      id: sub.id,
-      title: sub.gameName,
-      description: sub.developerInfo,
-      url: sub.gameUrl,
-      thumbnail: sub.thumbnailUrl || 'https://picsum.photos/seed/app/600/400',
-      category: sub.gameType,
-      players: 'Online',
-      views: sub.views || '0',
-      played: sub.played || '0',
-      likes: sub.likes || 0,
-      dislikes: sub.dislikes || 0,
-      developerInfo: sub.developerInfo,
-      profileImageUrl: sub.profileImageUrl,
-      developerBio: sub.developerBio || 'System Authorized'
-    }));
+    const dynamicGames = allSubmissions
+      .filter(s => s.status === 'approved')
+      .map(sub => ({
+        id: sub.id,
+        title: sub.gameName,
+        description: sub.developerInfo,
+        url: sub.gameUrl,
+        thumbnail: sub.thumbnailUrl || 'https://picsum.photos/seed/app/600/400',
+        category: sub.gameType,
+        players: 'Online',
+        views: sub.views || '0',
+        played: sub.played || '0',
+        likes: sub.likes || 0,
+        dislikes: sub.dislikes || 0,
+        developerInfo: sub.developerInfo,
+        profileImageUrl: sub.profileImageUrl,
+        developerBio: sub.developerBio || 'System Authorized',
+        createdAt: sub.createdAt
+      }));
+    
+    // Combine and Shuffle
     const all = [...GAMES_LIBRARY, ...dynamicGames];
+    
+    // Fisher-Yates Shuffle
+    for (let i = all.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [all[i], all[j]] = [all[j], all[i]];
+    }
     
     if (!searchTerm.trim()) return all;
     
@@ -143,7 +142,15 @@ export default function Home() {
       g.title.toLowerCase().includes(term) || 
       g.category.toLowerCase().includes(term)
     );
-  }, [approvedSubmissions, searchTerm]);
+  }, [allSubmissions, searchTerm]);
+
+  const pendingSubmissions = useMemo(() => 
+    allSubmissions.filter(s => s.status === 'under_review'), 
+  [allSubmissions]);
+
+  const userSubmissions = useMemo(() => 
+    allSubmissions.filter(s => s.userId === loggedInUser?.username), 
+  [allSubmissions, loggedInUser?.username]);
 
   useEffect(() => {
     const savedUser = localStorage.getItem('pulse_session');

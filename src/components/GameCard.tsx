@@ -1,8 +1,9 @@
+
 "use client";
 
 import Image from 'next/image';
 import { Game } from '@/lib/games';
-import { Eye, MousePointer2, ThumbsUp, ThumbsDown, Play, Share2, MoreVertical, Bookmark, User, AlertTriangle, MessageSquare, Fingerprint } from 'lucide-react';
+import { Eye, MousePointer2, ThumbsUp, ThumbsDown, Play, Share2, MoreVertical, Bookmark, User, AlertTriangle, MessageSquare, Fingerprint, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState, useMemo, useEffect } from 'react';
 import { cn } from '@/lib/utils';
@@ -32,6 +33,25 @@ interface GameCardProps {
   onAboutDev: (dev: any) => void;
   onShowId: (id: string) => void;
   savedGames: any[];
+}
+
+function formatTimeAgo(dateString?: string) {
+  if (!dateString) return "Recently";
+  const date = new Date(dateString);
+  const now = new Date();
+  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+  let interval = seconds / 31536000;
+  if (interval > 1) return Math.floor(interval) + " years ago";
+  interval = seconds / 2592000;
+  if (interval > 1) return Math.floor(interval) + " months ago";
+  interval = seconds / 86400;
+  if (interval > 1) return Math.floor(interval) + " days ago";
+  interval = seconds / 3600;
+  if (interval > 1) return Math.floor(interval) + " hours ago";
+  interval = seconds / 60;
+  if (interval > 1) return Math.floor(interval) + " minutes ago";
+  return "Just now";
 }
 
 export function GameCard({ game, onLaunch, user, onAboutDev, onShowId, savedGames }: GameCardProps) {
@@ -277,24 +297,34 @@ export function GameCard({ game, onLaunch, user, onAboutDev, onShowId, savedGame
         </div>
       </div>
 
-      <Button 
-        disabled={isLoading}
-        onClick={handlePlayClick}
-        className="w-full bg-primary hover:bg-primary/90 text-white font-black text-[11px] uppercase tracking-[0.25em] h-12 rounded-2xl shadow-xl shadow-primary/20 transition-all active:scale-[0.98] border border-white/20"
-      >
-        {isLoading ? (
-          <div className="flex gap-2 items-center justify-center">
-            <div className="w-2.5 h-2.5 bg-white rounded-full animate-bounce [animation-delay:-0.3s]" />
-            <div className="w-2.5 h-2.5 bg-white rounded-full animate-bounce [animation-delay:-0.15s]" />
-            <div className="w-2.5 h-2.5 bg-white rounded-full animate-bounce" />
+      <div className="flex flex-col gap-4">
+        <Button 
+          disabled={isLoading}
+          onClick={handlePlayClick}
+          className="w-full bg-primary hover:bg-primary/90 text-white font-black text-[11px] uppercase tracking-[0.25em] h-12 rounded-2xl shadow-xl shadow-primary/20 transition-all active:scale-[0.98] border border-white/20"
+        >
+          {isLoading ? (
+            <div className="flex gap-2 items-center justify-center">
+              <div className="w-2.5 h-2.5 bg-white rounded-full animate-bounce [animation-delay:-0.3s]" />
+              <div className="w-2.5 h-2.5 bg-white rounded-full animate-bounce [animation-delay:-0.15s]" />
+              <div className="w-2.5 h-2.5 bg-white rounded-full animate-bounce" />
+            </div>
+          ) : (
+            <div className="flex items-center gap-2.5">
+              <Play className="w-5 h-5 fill-current" />
+              Play Now
+            </div>
+          )}
+        </Button>
+
+        <div className="flex items-center justify-center gap-2.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+          <div className="flex items-center gap-1.5">
+            <Globe className="w-4 h-4 text-green-500" />
+            <span>Published:</span>
           </div>
-        ) : (
-          <div className="flex items-center gap-2.5">
-            <Play className="w-5 h-5 fill-current" />
-            Play Now
-          </div>
-        )}
-      </Button>
+          <span className="italic text-foreground">{formatTimeAgo(game.createdAt)}</span>
+        </div>
+      </div>
 
       {/* Feedback Dialog */}
       <Dialog open={showFeedbackDialog} onOpenChange={setShowFeedbackDialog}>

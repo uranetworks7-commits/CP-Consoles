@@ -13,6 +13,7 @@ export interface Game {
   dislikes: number;
   developerInfo?: string;
   profileImageUrl?: string;
+  createdAt?: string;
 }
 
 export const GAMES_LIBRARY: Game[] = [
@@ -29,7 +30,8 @@ export const GAMES_LIBRARY: Game[] = [
     likes: 12400,
     dislikes: 120,
     developerInfo: 'Nexus Core Labs',
-    profileImageUrl: 'https://picsum.photos/seed/dev1/100/100'
+    profileImageUrl: 'https://picsum.photos/seed/dev1/100/100',
+    createdAt: '2024-01-15T10:00:00Z'
   },
   {
     id: 'battle-royal',
@@ -44,7 +46,8 @@ export const GAMES_LIBRARY: Game[] = [
     likes: 9200,
     dislikes: 80,
     developerInfo: 'Apex Systems',
-    profileImageUrl: 'https://picsum.photos/seed/dev2/100/100'
+    profileImageUrl: 'https://picsum.photos/seed/dev2/100/100',
+    createdAt: '2024-02-10T14:30:00Z'
   },
   {
     id: 'nitro-racer',
@@ -59,6 +62,7 @@ export const GAMES_LIBRARY: Game[] = [
     likes: 8500,
     dislikes: 45,
     developerInfo: 'Drift Masters',
-    profileImageUrl: 'https://picsum.photos/seed/dev3/100/100'
+    profileImageUrl: 'https://picsum.photos/seed/dev3/100/100',
+    createdAt: '2024-03-01T09:15:00Z'
   }
 ];
