@@ -13,7 +13,7 @@ export const GAMES_LIBRARY: Game[] = [
     id: 'chaos-squad',
     title: 'CS: Chaos Squad',
     description: 'High-octane tactical shooter. Form your squad and dominate the battlefield in this intense combat experience.',
-    url: 'https://yandex.com/games/app/417075?utm_source=app_page',
+    url: 'https://html5.gamedistribution.com/dec78e8b416948f19832618a64afb0d7/',
     thumbnail: 'https://picsum.photos/seed/chaos1/600/400',
     category: 'Shooter',
     players: 'Multiplayer'
