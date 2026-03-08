@@ -12,6 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
+import { cn } from '@/lib/utils';
 import {
   Sheet,
   SheetContent,
@@ -568,8 +569,11 @@ export default function Home() {
               <SheetContent side="right" className="bg-background w-full sm:max-w-md p-0 flex flex-col shadow-2xl">
                 <SheetHeader className="p-8 border-b border-border">
                   <SheetTitle>
-                    <div className="flex items-center gap-4">
-                      <Avatar className="h-16 w-16 border-2 border-primary/30">
+                    <div 
+                      className="flex items-center gap-4 cursor-pointer group hover:opacity-80 transition-opacity"
+                      onClick={() => setShowUserAnalytics(true)}
+                    >
+                      <Avatar className="h-16 w-16 border-2 border-primary/30 group-hover:border-primary">
                         <AvatarImage src={loggedInUser.profileImageUrl} />
                         <AvatarFallback className="bg-secondary text-primary text-xl font-bold">{loggedInUser.username.substring(0, 2)}</AvatarFallback>
                       </Avatar>
@@ -604,7 +608,10 @@ export default function Home() {
                     </button>
                   </div>
                   <div className="space-y-4">
-                    <Button variant="outline" onClick={() => setShowNewProject(true)} className="w-full h-14 bg-primary/10 hover:bg-primary hover:text-primary-foreground text-primary rounded-2xl border border-primary/30 text-[10px] font-black uppercase tracking-widest">
+                    <Button 
+                      onClick={() => setShowNewProject(true)} 
+                      className="w-full h-14 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl border-none text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20"
+                    >
                       <PlusCircle className="w-4 h-4 mr-2" /> New Project
                     </Button>
                     <div className="p-5 bg-card rounded-2xl border border-border shadow-sm">
