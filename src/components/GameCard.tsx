@@ -243,11 +243,11 @@ export function GameCard({ game, onLaunch, user, onAboutDev, onShowId, savedGame
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-primary/80 dark:text-primary/70">
               <Eye className="w-3.5 h-3.5" />
-              {game.views}
+              {formatK(parseInt(game.views || "0"))}
             </div>
             <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-green-500 dark:text-accent/80">
               <MousePointer2 className="w-3.5 h-3.5" />
-              {game.played}
+              {formatK(parseInt(game.played || "0"))}
             </div>
           </div>
         </div>
