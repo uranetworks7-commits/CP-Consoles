@@ -3,7 +3,7 @@
 
 import Image from 'next/image';
 import { Game } from '@/lib/games';
-import { Eye, MousePointer2, ThumbsUp, ThumbsDown, Play, Share2, MoreVertical, Bookmark, User, AlertTriangle, MessageSquare, Fingerprint, Globe } from 'lucide-react';
+import { Eye, MousePointer2, ThumbsUp, ThumbsDown, Play, Share2, MoreVertical, Bookmark, User, AlertTriangle, MessageSquare, Fingerprint, Globe, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState, useMemo, useEffect } from 'react';
 import { cn } from '@/lib/utils';
@@ -149,10 +149,10 @@ export function GameCard({ game, onLaunch, user, onAboutDev, onShowId, savedGame
     const saveRef = ref(rtdb, `users/${user.username}/savedGames/${game.id}`);
     if (isSaved) {
       remove(saveRef);
-      toast({ title: "Removed", description: "Engine removed from saved items." });
+      // Removed toast notification for clean silent saving experience
     } else {
       update(saveRef, game);
-      toast({ title: "Saved", description: "Engine secured in saved items." });
+      // Removed toast notification for clean silent saving experience
     }
   };
 
@@ -162,6 +162,12 @@ export function GameCard({ game, onLaunch, user, onAboutDev, onShowId, savedGame
       setIsLoading(false);
       onLaunch(game);
     }, 1200);
+  };
+
+  const handleRefreshLoading = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsLoading(false);
+    setTimeout(() => setIsLoading(true), 100);
   };
 
   const submitFeedback = async () => {
@@ -301,13 +307,20 @@ export function GameCard({ game, onLaunch, user, onAboutDev, onShowId, savedGame
         <Button 
           disabled={isLoading}
           onClick={handlePlayClick}
-          className="w-full bg-primary hover:bg-primary/90 text-white font-black text-[11px] uppercase tracking-[0.25em] h-12 rounded-2xl shadow-xl shadow-primary/20 transition-all active:scale-[0.98] border border-white/20"
+          className="w-full bg-primary hover:bg-primary/90 text-white font-black text-[11px] uppercase tracking-[0.25em] h-12 rounded-2xl shadow-xl shadow-primary/20 transition-all active:scale-[0.98] border border-white/20 relative group"
         >
           {isLoading ? (
             <div className="flex gap-2 items-center justify-center">
               <div className="w-2.5 h-2.5 bg-white rounded-full animate-bounce [animation-delay:-0.3s]" />
               <div className="w-2.5 h-2.5 bg-white rounded-full animate-bounce [animation-delay:-0.15s]" />
               <div className="w-2.5 h-2.5 bg-white rounded-full animate-bounce" />
+              <button 
+                onClick={handleRefreshLoading}
+                className="absolute right-3 p-1 rounded-full bg-white/20 hover:bg-white/40 transition-colors"
+                title="Refresh Uplink"
+              >
+                <RotateCcw className="w-3.5 h-3.5 animate-spin-slow" />
+              </button>
             </div>
           ) : (
             <div className="flex items-center gap-2.5">

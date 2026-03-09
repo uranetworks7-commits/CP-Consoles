@@ -33,6 +33,7 @@ export default function Home() {
   const [activeGame, setActiveGame] = useState<Game | null>(null);
   const [usernameInput, setUsernameInput] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [isAutoLoggingIn, setIsAutoLoggingIn] = useState(false);
   const [loggedInUser, setLoggedInUser] = useState<any>(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
@@ -106,6 +107,51 @@ export default function Home() {
     });
     return () => off(savedRef, 'value', unsubscribe);
   }, [rtdb, loggedInUser?.username]);
+
+  // Auto Login Logic via User Agent
+  useEffect(() => {
+    const attemptAutoLogin = async () => {
+      if (!rtdb) return;
+      
+      const savedUser = localStorage.getItem('pulse_session');
+      if (savedUser) return; // User is already logged in
+
+      const manualLogout = localStorage.getItem('manual_logout') === 'true';
+      if (manualLogout) return; // User manually logged out, don't auto-login
+
+      setIsAutoLoggingIn(true);
+      try {
+        const currentAgent = navigator.userAgent;
+        const dbRef = ref(rtdb, 'users');
+        const snapshot = await get(dbRef);
+        
+        if (snapshot.exists()) {
+          const users = snapshot.val();
+          const foundEntry = Object.entries(users).find(([username, data]: [string, any]) => {
+            return data['user agent'] === currentAgent;
+          });
+
+          if (foundEntry) {
+            const [username, userData] = foundEntry;
+            const userProfile = { username, ...(typeof userData === 'object' ? userData : {}) };
+            setLoggedInUser(userProfile);
+            localStorage.setItem('pulse_session', JSON.stringify(userProfile));
+            localStorage.removeItem('manual_logout');
+            toast({ title: "Auto Login Active", description: `Welcome back, ${username}.` });
+          }
+        }
+      } catch (e) {
+        console.error("Auto login failure:", e);
+      } finally {
+        // Delay for visual dot animation
+        setTimeout(() => setIsAutoLoggingIn(false), 1500);
+      }
+    };
+
+    if (isInitialized) {
+      attemptAutoLogin();
+    }
+  }, [rtdb, isInitialized]);
 
   // Derived filtered lists with STABLE random sorting
   const displayGames = useMemo(() => {
@@ -248,6 +294,7 @@ export default function Home() {
         const userProfile = { username, ...(typeof userData === 'object' ? userData : {}) };
         setLoggedInUser(userProfile);
         localStorage.setItem('pulse_session', JSON.stringify(userProfile));
+        localStorage.removeItem('manual_logout'); // Clear manual logout flag
         if (userData.theme) {
           setTheme(userData.theme);
           localStorage.setItem('console_theme', userData.theme);
@@ -267,6 +314,7 @@ export default function Home() {
   const handleLogout = () => {
     setLoggedInUser(null);
     localStorage.removeItem('pulse_session');
+    localStorage.setItem('manual_logout', 'true'); // Prevent auto-login until next manual login
     setShowNewProject(false);
     setShowUserAnalytics(false);
     setShowSavedGames(false);
@@ -365,6 +413,17 @@ export default function Home() {
   if (!isInitialized) return (
     <div className="min-h-screen bg-background flex items-center justify-center">
       <Cpu className="text-primary w-8 h-8 animate-spin" />
+    </div>
+  );
+
+  if (isAutoLoggingIn) return (
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
+      <div className="flex gap-2">
+        <div className="w-3 h-3 bg-primary rounded-full animate-bounce [animation-delay:-0.3s]" />
+        <div className="w-3 h-3 bg-primary rounded-full animate-bounce [animation-delay:-0.15s]" />
+        <div className="w-3 h-3 bg-primary rounded-full animate-bounce" />
+      </div>
+      <p className="mt-4 text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground animate-pulse italic">Scanning User Agent Protocol...</p>
     </div>
   );
 
