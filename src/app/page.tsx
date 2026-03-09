@@ -7,7 +7,7 @@ import { GameLaunchPad } from '@/components/GameLaunchPad';
 import { MonitorPlay, LogOut, Cpu, Gamepad2, PlusCircle, History, Settings, Sun, Moon, ArrowLeft, Rocket, Key, CheckCircle2, BarChart3, Edit3, Save, X as CloseIcon, Share2, Check, Trash2, Bookmark, User, Fingerprint, Search, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useRTDB } from '@/firebase';
-import { ref, get, child, update, push, onValue, off, remove } from 'firebase/database';
+import { ref, get, child, update, push, onValue, off, remove, set } from 'firebase/database';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
@@ -332,7 +332,8 @@ export default function Home() {
       const playData = { id: game.id, title: game.title, timestamp: new Date().toISOString() };
       const currentXp = parseInt((loggedInUser.xp || "0").toString().replace(/,/g, ''));
       const newXp = (currentXp + 50).toLocaleString();
-      const updates = { recentPlayed: playData, xp: newXp };
+      const updates: any = { recentPlayed: playData, xp: newXp };
+      
       try {
         await update(userRef, updates);
         const updatedUser = { ...loggedInUser, ...updates };
@@ -341,12 +342,20 @@ export default function Home() {
         
         const submission = allSubmissions.find(s => s.id === game.id);
         if (submission) {
-          const currentPlayed = parseInt(submission.played || "0");
-          const currentViews = parseInt(submission.views || "0");
-          await update(ref(rtdb, `submissions/${game.id}`), {
-            played: (currentPlayed + 1).toString(),
-            views: (currentViews + 1).toString()
-          });
+          // Unique View logic via localStorage
+          const viewKey = `viewed_${game.id}_${loggedInUser.username}`;
+          const hasViewed = localStorage.getItem(viewKey);
+          
+          const incrementUpdates: any = {
+            played: (parseInt(submission.played || "0") + 1).toString()
+          };
+          
+          if (!hasViewed) {
+            incrementUpdates.views = (parseInt(submission.views || "0") + 1).toString();
+            localStorage.setItem(viewKey, 'true');
+          }
+
+          await update(ref(rtdb, `submissions/${game.id}`), incrementUpdates);
         }
       } catch (err) {
         console.error("Failed to sync play session:", err);
@@ -451,6 +460,28 @@ export default function Home() {
         </div>
       </div>
     </div>
+  );
+
+  const adminDialog = (
+    <ShadDialog open={showAdminKeyDialog} onOpenChange={setShowAdminKeyDialog}>
+      <ShadDialogContent className="rounded-3xl border-accent/30 bg-card/90 backdrop-blur-xl">
+        <ShadDialogHeader>
+          <ShadDialogTitle className="text-xl font-black uppercase italic tracking-tighter">Enter Admin Protocol</ShadDialogTitle>
+        </ShadDialogHeader>
+        <div className="py-4">
+          <Input 
+            type="password" 
+            placeholder="System Key" 
+            value={adminKeyInput} 
+            onChange={(e) => setAdminKeyInput(e.target.value)}
+            className="rounded-xl bg-secondary/20 border-accent/20 text-center text-lg tracking-widest"
+          />
+        </div>
+        <ShadDialogFooter>
+          <Button onClick={verifyAdminKey} className="w-full bg-accent hover:bg-accent/90 text-accent-foreground font-black uppercase tracking-widest">Authorize Access</Button>
+        </ShadDialogFooter>
+      </ShadDialogContent>
+    </ShadDialog>
   );
 
   if (isAdminMode) {
@@ -634,6 +665,7 @@ export default function Home() {
   if (showSavedGames) {
     return (
       <div className="min-h-screen bg-background animate-fade-in">
+        <GameLaunchPad game={activeGame} onClose={() => setActiveGame(null)} />
         <header className="sticky top-0 z-30 bg-background/95 backdrop-blur-xl border-b border-border py-4 px-6 flex items-center justify-between">
           <Button variant="ghost" size="sm" onClick={() => setShowSavedGames(false)} className="rounded-xl gap-2 font-black uppercase tracking-widest text-[10px]">
             <ArrowLeft className="w-4 h-4" /> Back to Console
@@ -795,25 +827,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <ShadDialog open={showAdminKeyDialog} onOpenChange={setShowAdminKeyDialog}>
-        <ShadDialogContent className="rounded-3xl border-accent/30 bg-card/90 backdrop-blur-xl">
-          <ShadDialogHeader>
-            <ShadDialogTitle className="text-xl font-black uppercase italic tracking-tighter">Enter Admin Protocol</ShadDialogTitle>
-          </ShadDialogHeader>
-          <div className="py-4">
-            <Input 
-              type="password" 
-              placeholder="System Key" 
-              value={adminKeyInput} 
-              onChange={(e) => setAdminKeyInput(e.target.value)}
-              className="rounded-xl bg-secondary/20 border-accent/20 text-center text-lg tracking-widest"
-            />
-          </div>
-          <ShadDialogFooter>
-            <Button onClick={verifyAdminKey} className="w-full bg-accent hover:bg-accent/90 text-accent-foreground font-black uppercase tracking-widest">Authorize Access</Button>
-          </ShadDialogFooter>
-        </ShadDialogContent>
-      </ShadDialog>
+      {adminDialog}
 
       <main className="max-w-2xl mx-auto px-4 sm:px-6">
         <header className="sticky top-0 z-30 bg-background/95 backdrop-blur-xl border-b border-border py-5">

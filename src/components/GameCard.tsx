@@ -161,7 +161,7 @@ export function GameCard({ game, onLaunch, user, onAboutDev, onShowId, savedGame
     setTimeout(() => {
       setIsLoading(false);
       onLaunch(game);
-    }, 1200);
+    }, 600); // Faster loading sequence
   };
 
   const handleRefreshLoading = (e: React.MouseEvent) => {
