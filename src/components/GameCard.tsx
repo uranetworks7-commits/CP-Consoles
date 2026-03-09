@@ -149,10 +149,8 @@ export function GameCard({ game, onLaunch, user, onAboutDev, onShowId, savedGame
     const saveRef = ref(rtdb, `users/${user.username}/savedGames/${game.id}`);
     if (isSaved) {
       remove(saveRef);
-      // Removed toast notification for clean silent saving experience
     } else {
       update(saveRef, game);
-      // Removed toast notification for clean silent saving experience
     }
   };
 

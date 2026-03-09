@@ -137,13 +137,11 @@ export default function Home() {
             setLoggedInUser(userProfile);
             localStorage.setItem('pulse_session', JSON.stringify(userProfile));
             localStorage.removeItem('manual_logout');
-            toast({ title: "Auto Login Active", description: `Welcome back, ${username}.` });
           }
         }
       } catch (e) {
         console.error("Auto login failure:", e);
       } finally {
-        // Delay for visual dot animation
         setTimeout(() => setIsAutoLoggingIn(false), 1500);
       }
     };
@@ -323,7 +321,6 @@ export default function Home() {
     setIsAdminMode(false);
     setAppToDelete(null);
     setEditingApp(null);
-    toast({ title: "Session Terminated", description: "Successfully logged out." });
   };
 
   const handleLaunchGame = async (game: Game) => {
@@ -410,26 +407,20 @@ export default function Home() {
     }
   };
 
-  if (!isInitialized) return (
-    <div className="min-h-screen bg-background flex items-center justify-center">
-      <Cpu className="text-primary w-8 h-8 animate-spin" />
-    </div>
-  );
-
-  if (isAutoLoggingIn) return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
-      <div className="flex gap-2">
-        <div className="w-3 h-3 bg-primary rounded-full animate-bounce [animation-delay:-0.3s]" />
-        <div className="w-3 h-3 bg-primary rounded-full animate-bounce [animation-delay:-0.15s]" />
-        <div className="w-3 h-3 bg-primary rounded-full animate-bounce" />
+  if (!isInitialized || isAutoLoggingIn) return (
+    <div className="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center p-6">
+      <div className="flex gap-2 mb-4">
+        <div className="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:-0.3s]" />
+        <div className="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:-0.15s]" />
+        <div className="w-2 h-2 bg-primary rounded-full animate-bounce" />
       </div>
-      <p className="mt-4 text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground animate-pulse italic">Scanning User Agent Protocol...</p>
+      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/60 animate-pulse italic">Auto login...</p>
     </div>
   );
 
   if (!loggedInUser) return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
-      <div className="w-full max-md space-y-8 bg-card/40 dark:bg-card/20 p-10 rounded-[2.5rem] border border-border shadow-2xl backdrop-blur-md relative overflow-hidden">
+      <div className="w-full max-w-md space-y-8 bg-card/40 dark:bg-card/20 p-10 rounded-[2.5rem] border border-border shadow-2xl backdrop-blur-md relative overflow-hidden">
         <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/10 rounded-full blur-3xl" />
         <div className="relative space-y-8">
           <div className="text-center space-y-4">
