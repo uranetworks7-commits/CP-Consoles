@@ -1,4 +1,3 @@
-
 "use client";
 
 import Image from 'next/image';
@@ -141,7 +140,7 @@ export function GameCard({ game, onLaunch, user, onAboutDev, onShowId, savedGame
 
   const handleShare = () => {
     navigator.clipboard.writeText(game.url);
-    toast({ title: "Link Copied", description: "Engine protocol shared to clipboard." });
+    toast({ title: "Link Copied" });
   };
 
   const handleSave = async () => {
