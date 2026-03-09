@@ -414,7 +414,7 @@ export default function Home() {
         <div className="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:-0.15s]" />
         <div className="w-2 h-2 bg-primary rounded-full animate-bounce" />
       </div>
-      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/60 animate-pulse italic">Auto login...</p>
+      <p className="text-lg font-black uppercase tracking-[0.2em] text-primary animate-pulse italic">Auto Login</p>
     </div>
   );
 
