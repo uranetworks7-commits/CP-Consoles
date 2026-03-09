@@ -113,10 +113,10 @@ export default function Home() {
       if (!rtdb) return;
       
       const savedUser = localStorage.getItem('pulse_session');
-      if (savedUser) return; // User is already logged in
+      if (savedUser) return; 
 
       const manualLogout = localStorage.getItem('manual_logout') === 'true';
-      if (manualLogout) return; // User manually logged out, don't auto-login
+      if (manualLogout) return;
 
       setIsAutoLoggingIn(true);
       try {
@@ -174,14 +174,12 @@ export default function Home() {
     
     const all = [...GAMES_LIBRARY, ...dynamicGames];
     
-    // Assign stable random weights if they don't exist for this session
     all.forEach(g => {
       if (gameWeights.current[g.id] === undefined) {
         gameWeights.current[g.id] = Math.random();
       }
     });
 
-    // Sort by the stable session weights
     all.sort((a, b) => gameWeights.current[a.id] - gameWeights.current[b.id]);
     
     if (!searchTerm.trim()) return all;
@@ -192,6 +190,11 @@ export default function Home() {
       g.category.toLowerCase().includes(term)
     );
   }, [allSubmissions, searchTerm]);
+
+  // Resolve Saved Games Metadata
+  const resolvedSavedGames = useMemo(() => {
+    return displayGames.filter(g => savedGames.includes(g.id));
+  }, [displayGames, savedGames]);
 
   const pendingSubmissions = useMemo(() => 
     allSubmissions.filter(s => s.status === 'under_review'), 
@@ -291,7 +294,7 @@ export default function Home() {
         const userProfile = { username, ...(typeof userData === 'object' ? userData : {}) };
         setLoggedInUser(userProfile);
         localStorage.setItem('pulse_session', JSON.stringify(userProfile));
-        localStorage.removeItem('manual_logout'); // Clear manual logout flag
+        localStorage.removeItem('manual_logout'); 
         if (userData.theme) {
           setTheme(userData.theme);
           localStorage.setItem('console_theme', userData.theme);
@@ -311,7 +314,7 @@ export default function Home() {
   const handleLogout = () => {
     setLoggedInUser(null);
     localStorage.removeItem('pulse_session');
-    localStorage.setItem('manual_logout', 'true'); // Prevent auto-login until next manual login
+    localStorage.setItem('manual_logout', 'true'); 
     setShowNewProject(false);
     setShowUserAnalytics(false);
     setShowSavedGames(false);
@@ -413,7 +416,7 @@ export default function Home() {
         <div className="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:-0.15s]" />
         <div className="w-2 h-2 bg-primary rounded-full animate-bounce" />
       </div>
-      <p className="text-lg font-black uppercase tracking-[0.2em] text-primary animate-pulse italic">Auto Login</p>
+      <p className="text-3xl font-black uppercase tracking-[0.2em] text-primary animate-pulse italic">Auto Login</p>
     </div>
   );
 
@@ -640,12 +643,12 @@ export default function Home() {
         <main className="max-w-2xl mx-auto p-6 space-y-8 pb-32">
           <h1 className="text-3xl font-black uppercase italic tracking-tighter">Saved Items</h1>
           <div className="grid gap-6">
-            {savedGames.length === 0 ? (
+            {resolvedSavedGames.length === 0 ? (
               <div className="p-10 border border-dashed border-border rounded-3xl text-center">
                 <p className="text-muted-foreground font-bold uppercase tracking-widest text-xs italic">No Application Found // Bookmark your favorites</p>
               </div>
             ) : (
-              savedGames.map((game) => (
+              resolvedSavedGames.map((game) => (
                 <GameCard key={game.id} game={game} onLaunch={handleLaunchGame} user={loggedInUser} onAboutDev={setViewingDev} onShowId={setViewingPostId} savedGames={savedGames} />
               ))
             )}
@@ -857,7 +860,7 @@ export default function Home() {
                   <div className="flex-1 overflow-y-auto p-8 space-y-8">
                     <div className="space-y-4">
                       <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">System Setting</p>
-                      <div className="flex items-center justify-between p-4 bg-secondary/30 rounded-2xl border border-border">
+                      <div className="flex items-center justify-between p-4 bg-sidebar-accent/30 rounded-2xl border border-border">
                         <span className="text-xs font-bold uppercase tracking-widest">Theme</span>
                         <Button variant="outline" size="sm" onClick={toggleTheme} className="rounded-xl gap-2 font-black text-[10px] uppercase tracking-widest">
                           {theme === 'dark' ? <><Moon className="w-3.5 h-3.5" /> Dark</> : <><Sun className="w-3.5 h-3.5 text-orange-500" /> Light</>}

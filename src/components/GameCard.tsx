@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { useState, useMemo, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { useRTDB } from '@/firebase';
-import { ref, update, remove, push, onValue, off } from 'firebase/database';
+import { ref, update, remove, push, onValue, off, set } from 'firebase/database';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -66,7 +66,6 @@ export function GameCard({ game, onLaunch, user, onAboutDev, onShowId, savedGame
   const rtdb = useRTDB();
   const { toast } = useToast();
 
-  // Sync individual user vote from RTDB to prevent duplicates and enable cross-session tracking
   useEffect(() => {
     if (!rtdb || !user || !game.id) return;
     const voteRef = ref(rtdb, `submissions/${game.id}/userVotes/${user.username}`);
@@ -77,7 +76,11 @@ export function GameCard({ game, onLaunch, user, onAboutDev, onShowId, savedGame
   }, [rtdb, user, game.id]);
 
   const isSaved = useMemo(() => {
-    return savedGames.some(sg => sg.id === game.id);
+    return savedGames.some(sg => {
+      if (typeof sg === 'string') return sg === game.id;
+      if (sg && typeof sg === 'object' && 'id' in sg) return sg.id === game.id;
+      return false;
+    });
   }, [savedGames, game.id]);
 
   const formatK = (num: number) => {
@@ -149,7 +152,7 @@ export function GameCard({ game, onLaunch, user, onAboutDev, onShowId, savedGame
     if (isSaved) {
       remove(saveRef);
     } else {
-      update(saveRef, game);
+      set(saveRef, game.id);
     }
   };
 
