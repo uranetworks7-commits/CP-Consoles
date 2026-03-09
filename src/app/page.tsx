@@ -57,6 +57,9 @@ export default function Home() {
   const [adminKeyInput, setAdminKeyInput] = useState('');
   const [isAdminMode, setIsAdminMode] = useState(false);
 
+  // Stable random weights for sorting games randomly but consistently per session
+  const gameWeights = useRef<Record<string, number>>({});
+
   // Form State
   const [formData, setFormData] = useState({
     profileImageUrl: '',
@@ -104,7 +107,7 @@ export default function Home() {
     return () => off(savedRef, 'value', unsubscribe);
   }, [rtdb, loggedInUser?.username]);
 
-  // Derived filtered lists with RANDOM sorting
+  // Derived filtered lists with STABLE random sorting
   const displayGames = useMemo(() => {
     const dynamicGames = allSubmissions
       .filter(s => s.status === 'approved')
@@ -126,14 +129,17 @@ export default function Home() {
         createdAt: sub.createdAt
       }));
     
-    // Combine and Shuffle
     const all = [...GAMES_LIBRARY, ...dynamicGames];
     
-    // Fisher-Yates Shuffle
-    for (let i = all.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [all[i], all[j]] = [all[j], all[i]];
-    }
+    // Assign stable random weights if they don't exist for this session
+    all.forEach(g => {
+      if (gameWeights.current[g.id] === undefined) {
+        gameWeights.current[g.id] = Math.random();
+      }
+    });
+
+    // Sort by the stable session weights
+    all.sort((a, b) => gameWeights.current[a.id] - gameWeights.current[b.id]);
     
     if (!searchTerm.trim()) return all;
     
@@ -370,7 +376,7 @@ export default function Home() {
           <div className="text-center space-y-4">
             <div className="w-16 h-16 rounded-[1.5rem] bg-gradient-to-br from-primary to-accent p-[2px] mx-auto shadow-2xl shadow-primary/20">
               <div className="w-full h-full bg-card rounded-[1.4rem] flex items-center justify-center">
-                <Gamepad2 className="text-primary w-8 h-8" />
+                <MonitorPlay className="text-primary w-8 h-8" />
               </div>
             </div>
             <h1 className="text-3xl font-black uppercase italic tracking-tighter text-foreground leading-none">Connect Plus Console</h1>
@@ -565,7 +571,7 @@ export default function Home() {
               <Input placeholder="Brief identifier..." maxLength={20} value={formData.developerInfo} onChange={(e) => setFormData({...formData, developerInfo: e.target.value})} className="rounded-xl bg-secondary/10" />
             </div>
           </div>
-          <Button onClick={handlePublish} disabled={isPublishing || !formData.gameName || !formData.gameUrl} className="w-full h-14 bg-primary hover:bg-primary/90 text-white font-black uppercase tracking-[0.3em] text-xs rounded-2xl shadow-2xl shadow-primary/20">
+          <Button onClick={handlePublish} disabled={isPublishing || !formData.gameName || !formData.gameUrl} className="w-full h-14 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase tracking-[0.3em] text-xs rounded-2xl shadow-2xl shadow-primary/20">
             {isPublishing ? "Initiating Uplink..." : <><Rocket className="w-5 h-5 mr-3" /> Publish App</>}
           </Button>
         </main>
@@ -694,7 +700,7 @@ export default function Home() {
               </div>
             </div>
             <ShadDialogFooter>
-              <Button onClick={handleUpdateApp} className="w-full bg-primary hover:bg-primary/90 text-white font-black uppercase tracking-widest rounded-xl">
+              <Button onClick={handleUpdateApp} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase tracking-widest rounded-xl">
                 <Save className="w-4 h-4 mr-2" /> Save Protocol Changes
               </Button>
             </ShadDialogFooter>

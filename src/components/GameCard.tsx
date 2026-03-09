@@ -320,7 +320,7 @@ export function GameCard({ game, onLaunch, user, onAboutDev, onShowId, savedGame
         <div className="flex items-center justify-center gap-2.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
           <div className="flex items-center gap-1.5">
             <Globe className="w-4 h-4 text-green-500" />
-            <span>Published:</span>
+            <span>Published:-</span>
           </div>
           <span className="italic text-foreground">{formatTimeAgo(game.createdAt)}</span>
         </div>
