@@ -1,22 +1,25 @@
 "use client";
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useRTDB } from '@/firebase';
 import { ref, onValue, off } from 'firebase/database';
 import { Game } from '@/lib/games';
 import { GameLaunchPad } from '@/components/GameLaunchPad';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, MonitorPlay, AlertCircle, Play, Globe } from 'lucide-react';
+import { ArrowLeft, MonitorPlay, AlertCircle, Play, Globe, Share2, Check } from 'lucide-react';
 import Image from 'next/image';
+import { useToast } from '@/hooks/use-toast';
 
 export default function SharePage() {
   const { id } = useParams();
   const router = useRouter();
   const rtdb = useRTDB();
+  const { toast } = useToast();
   const [game, setGame] = useState<Game | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeGame, setActiveGame] = useState<Game | null>(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (!rtdb || !id) return;
@@ -46,6 +49,13 @@ export default function SharePage() {
     return () => off(gameRef, 'value', unsubscribe);
   }, [rtdb, id]);
 
+  const handleCopyUrl = () => {
+    navigator.clipboard.writeText(window.location.href);
+    setCopied(true);
+    toast({ title: "Link Copied" });
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center p-6">
@@ -67,7 +77,7 @@ export default function SharePage() {
         </div>
         <div className="space-y-2">
           <h1 className="text-2xl font-black uppercase italic tracking-tighter">Can't Find the Application/Engine</h1>
-          <p className="text-muted-foreground font-bold uppercase tracking-widest text-[10px]">The requested protocol is either missing or offline.</p>
+          <p className="text-muted-foreground font-bold uppercase tracking-widest text-[10px]">Url maybe invalid !</p>
         </div>
         <Button onClick={() => router.push('/')} variant="outline" className="rounded-2xl gap-2 font-black uppercase tracking-widest text-[10px]">
           <ArrowLeft className="w-4 h-4" /> Return to Console
@@ -82,9 +92,19 @@ export default function SharePage() {
         <Button variant="ghost" size="sm" onClick={() => router.push('/')} className="rounded-xl gap-2 font-black uppercase tracking-widest text-[10px]">
           <ArrowLeft className="w-4 h-4" /> Console Home
         </Button>
-        <div className="flex items-center gap-2">
-          <MonitorPlay className="w-5 h-5 text-primary" />
-          <span className="text-[10px] font-black uppercase tracking-widest italic text-foreground">Share Item</span>
+        <div className="flex items-center gap-4">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={handleCopyUrl} 
+            className="rounded-full w-9 h-9 bg-secondary/30 hover:bg-primary/20 transition-all border border-border/50"
+          >
+            {copied ? <Check className="w-4 h-4 text-green-500" /> : <Share2 className="w-4 h-4" />}
+          </Button>
+          <div className="flex items-center gap-2">
+            <MonitorPlay className="w-5 h-5 text-primary" />
+            <span className="text-[10px] font-black uppercase tracking-widest italic text-foreground">Share Item</span>
+          </div>
         </div>
       </header>
 
@@ -100,6 +120,7 @@ export default function SharePage() {
               alt={game.title}
               fill
               className="object-cover"
+              data-ai-hint="game thumbnail"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
           </div>
