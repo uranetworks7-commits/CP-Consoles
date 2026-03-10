@@ -48,13 +48,13 @@ export default function SharePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
+      <div className="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center p-6">
         <div className="flex gap-2 mb-4">
           <div className="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:-0.3s]" />
           <div className="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:-0.15s]" />
           <div className="w-2 h-2 bg-primary rounded-full animate-bounce" />
         </div>
-        <p className="text-xl font-black uppercase tracking-widest text-primary italic animate-pulse">Resolving Uplink...</p>
+        <p className="text-3xl font-black uppercase tracking-[0.2em] text-primary animate-pulse italic">Resolving Uplink...</p>
       </div>
     );
   }
@@ -84,7 +84,7 @@ export default function SharePage() {
         </Button>
         <div className="flex items-center gap-2">
           <MonitorPlay className="w-5 h-5 text-primary" />
-          <span className="text-[10px] font-black uppercase tracking-widest italic text-foreground">Shared Protocol</span>
+          <span className="text-[10px] font-black uppercase tracking-widest italic text-foreground">Share Item</span>
         </div>
       </header>
 
@@ -106,7 +106,6 @@ export default function SharePage() {
 
           <div className="space-y-4 text-center">
             <div className="space-y-2">
-              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary italic">Engine Uplink Found</span>
               <h1 className="text-4xl font-black italic tracking-tighter uppercase leading-none">{game.title}</h1>
               <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{game.category} // Developed By: {game.description}</p>
             </div>
@@ -116,13 +115,13 @@ export default function SharePage() {
               className="w-full h-16 bg-primary hover:bg-primary/90 text-white font-black text-xs uppercase tracking-[0.3em] rounded-2xl shadow-2xl shadow-primary/20 transition-all active:scale-[0.98] border border-white/20"
             >
               <Play className="w-6 h-6 mr-3 fill-current" />
-              Play Shared Engine
+              Play Now
             </Button>
           </div>
         </div>
 
         <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">
-          Shared via Connect Plus Console Protocol
+          Shared via Connect Plus Console Url
         </p>
       </main>
 
