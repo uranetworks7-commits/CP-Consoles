@@ -142,7 +142,8 @@ export function GameCard({ game, onLaunch, user, onAboutDev, onShowId, savedGame
   };
 
   const handleShare = () => {
-    navigator.clipboard.writeText(game.url);
+    const shareUrl = `${window.location.origin}/share/${game.id}`;
+    navigator.clipboard.writeText(shareUrl);
     toast({ title: "Link Copied" });
   };
 
@@ -161,7 +162,7 @@ export function GameCard({ game, onLaunch, user, onAboutDev, onShowId, savedGame
     setTimeout(() => {
       setIsLoading(false);
       onLaunch(game);
-    }, 600); // Faster loading sequence
+    }, 600);
   };
 
   const handleRefreshLoading = (e: React.MouseEvent) => {
